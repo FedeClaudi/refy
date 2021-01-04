@@ -1,0 +1,177 @@
+# Ignored file types
+.DS_Store
+examples/*.mp4
+tests/*.mp4
+
+.pytest_cache
+__pycache__
+*.pyc
+.ipynb_checkpoints
+.pytest_cache/*
+.pytest_cache/
+__pycache__/*
+__pycache__/
+*/__pycache__
+brainrender/atlas_specific/gene_expression/__pycache__
+brainrender/atlas_specific/gene_expression/__pycache__/*
+brainrender/atlas_specific/__pycache__
+
+workspace.py
+workspace.ipynb
+brexport.html
+*.ckpt
+*.vscode
+*.json
+*.xml
+*.idea
+*.pyc
+*.vtk
+*.nrrd
+*.tdms
+
+
+screenshots/*
+atlas_images/*
+
+# Output folder where screnshots etx. are saved
+Output/Data/*
+Output/Scenes/*
+Output/Screenshots/*
+Output/Videos/*
+Data/ABA/*
+
+# User folder where they can save stuff without it being tracked by git
+User/*
+
+# This folder is sometimes created when the incorrect paths are passed
+mouse_connectivity
+
+# Visual studio stuff
+*/tempCodeRunnerFile.py
+*/.ipynb_checkpoints
+.ipynb_checkpoints
+*/__pycache__
+__pycache__
+.DS_Store
+Users/
+
+# Test scripts and hidden files
+workspace.py
+workspace.ipynb
+playground.py
+secrets
+
+# Custom config files
+*.conf.custom
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+doc/build/
+
+# pydocmd
+_build/
+mkdocs.yml
+
+# PyBuilder
+target/
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+
+.idea/
+
+*.~lock.*
+
+
