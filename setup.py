@@ -10,9 +10,9 @@ requirements = [
 ]
 
 setup(
-    name="XXX",
-    version="XXX",
-    description="XXX",
+    name="referee",
+    version="0",
+    description="not yet",
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
@@ -37,7 +37,7 @@ setup(
         ]
     },
     include_package_data=True,
-    url="XXX",
+    url="https://github.com/FedeClaudi/referee",
     author="Federico Claudi",
     zip_safe=False,
 )
