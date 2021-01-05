@@ -7,14 +7,6 @@ from .input import load_user_input, augment_data
 from ._dbase import load_abstracts, load_database
 
 
-"""
-    - parse + augment user's papers
-    - construct similarity score for user's papers
-    - select N best fits to present to the user
-    - output them in a nice way
-"""
-
-
 def compute_similarity_matrix(papers):
     """
         Given a dataframe with papers metadata, load the 
@@ -61,7 +53,7 @@ def get_suggestions(papers, similarity, N=10):
     for user_paper in papers.loc[papers.input].title:
         idx = indices[user_paper]
 
-        # Get the pairwsie similarity scores of all papers with that paper
+        # Get the pairwsie similarity scores of all papers wrt the current one
         sim_scores = list(enumerate(similarity[idx]))
 
         # Sort the papers based on the similarity scores
