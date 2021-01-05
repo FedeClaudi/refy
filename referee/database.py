@@ -4,6 +4,7 @@ from pathlib import Path
 import gzip
 import multiprocessing
 from loguru import logger
+from rich.progress import track
 
 from .settings import (
     fields_of_study,
@@ -136,7 +137,7 @@ def upack_database(folder):
 
 
 def make_database(folder):
-    """
+    """π
         Given a database folder filled in by `unpack_database` this function creates the database proper. 
         It loads the dataframes and abstracts saved by `unpack_database` and uses 
         erm Frequency-Inverse Document Frequency (TF-IDF) embedding
@@ -147,15 +148,20 @@ def make_database(folder):
             folder: str, Path. Path to the folder where the database data is stored.
                 User must have run `unpack_database` on the folder's content first. 
     """
-    logger.debug(f"Making database in folder: {folder}")
+    logger.debug(f"Making database from data folder: {folder}")
 
     folder = Path(folder)
-    files = (folder / "dfs").glob("*.h5")
+    files = list((folder / "dfs").glob("*.h5"))
 
     # Load all metadata into a single dataframe
+    logger.debug(f'Loading all dataframes ({len(files)} files)')
     dfs = []
-    for f in files:
-        dfs.append(pd.read_hdf(f, key="hdf")["id"].values)
+    count = 0
+    for f in track(files, description='Loading data...'):
+        count += len(pd.read_hdf(f, key="hdf"))
+        dfs.append(pd.read_hdf(f, key="hdf"))
+
+    print(count)
     DATA = pd.concat(dfs)
     logger.debug(f"Found {len(DATA)} papers")
 
