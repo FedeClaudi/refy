@@ -3,14 +3,16 @@ import pandas as pd
 from pathlib import Path
 import gzip
 import multiprocessing
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import linear_kernel
 from loguru import logger
-import numpy as np
 
-from .settings import fields_of_study, base_dir, low_year, keywords
+from .settings import (
+    fields_of_study,
+    low_year,
+    keywords,
+    abstracts_dir,
+    database_path,
+)
 from .utils import isin, to_txt
-from ._dbase import load_abstracts
 
 
 def exclude(entry):
@@ -46,7 +48,7 @@ def exclude(entry):
 
 
 def _parse_single_file(args):
-    fpath, abstracts_dir, dfs_dir, n, N = args
+    fpath, dfs_dir, n, N = args
     logger.debug(f"Parsing compressed file: {fpath.name}")
 
     # check if file was opened before
@@ -121,9 +123,6 @@ def upack_database(folder):
     dfs_dir = folder / "dfs"
     dfs_dir.mkdir(exist_ok=True)
 
-    abstracts_dir = folder / "abstracts"
-    abstracts_dir.mkdir(exist_ok=True)
-
     # extract data from all files
     files = list((folder / "compressed").glob("*.gz"))
 
@@ -132,10 +131,7 @@ def upack_database(folder):
 
     n_cpus = multiprocessing.cpu_count()
     with multiprocessing.Pool(processes=n_cpus) as pool:
-        args = [
-            (fl, abstracts_dir, dfs_dir, n, len(files))
-            for n, fl in enumerate(files)
-        ]
+        args = [(fl, dfs_dir, n, len(files)) for n, fl in enumerate(files)]
         pool.map(_parse_single_file, args)
 
 
@@ -154,8 +150,6 @@ def make_database(folder):
     logger.debug(f"Making database in folder: {folder}")
 
     folder = Path(folder)
-    abstracts_dir = folder / "abstracts"
-
     files = (folder / "dfs").glob("*.h5")
 
     # Load all metadata into a single dataframe
@@ -163,32 +157,9 @@ def make_database(folder):
     for f in files:
         dfs.append(pd.read_hdf(f, key="hdf")["id"].values)
     DATA = pd.concat(dfs)
-    ids = DATA["id"]
-    logger.debug(f"Found {len(ids)} papers")
+    logger.debug(f"Found {len(DATA)} papers")
 
-    ids = ids[:10]  # ! for debugging
-
-    # Load each paper's abstract to create embedding
-    logger.debug("Loading abstracts")
-    abstracts = load_abstracts(ids, abstracts_dir)
-
-    # create embedding
-    # Define a TF-IDF Vectorizer Object. Remove all english stop words such as 'the', 'a'
-    tfidf = TfidfVectorizer(stop_words="english")
-
-    # Construct the required TF-IDF matrix by fitting and transforming the data
-    logger.debug("Fitting TfidfVectorizer model")
-    tfidf_matrix = tfidf.fit_transform(abstracts)
-
-    # compute cosine similarity
-    similarity = linear_kernel(tfidf_matrix, tfidf_matrix)
+    DATA.to_hdf(database_path, key="hdf")
     logger.debug(
-        f'Saving similarity matrix with shape: {similarity.shape} at {base_dir/"similarity.npy"}'
-    )
-
-    # save results
-    np.save(str(base_dir / "similarity.npy"), similarity)
-    DATA.to_hdf(base_dir / "database.h5", key="hdf")
-    logger.debug(
-        f'Saved database at: {base_dir/"database.h5"}. {len(DATA)} entries in total'
+        f"Saved database at: {database_path}. {len(DATA)} entries in total"
     )
