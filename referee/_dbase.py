@@ -4,6 +4,10 @@ import json
 
 from .settings import database_path, abstracts_path
 
+# from .utils import check_internet_connection, retrieve_over_http
+
+# --------------------------------- load data -------------------------------- #
+
 
 def load_abstracts():
     """
@@ -33,23 +37,20 @@ def load_database():
     return dbase
 
 
-def id_from_title(title, database):
-    """
-        Given a paper title try to find the corresponding entry
-        in the search database and return its ID
+# ------------------------------- download data ------------------------------ #
+# def download_atlas_data(self):
+#     """Download and extract atlas from remote url."""
+#     utils.check_internet_connection()
 
-        Arguments:
-            title: str. Paper title
-            database: DataFrame with search database data
+#     # Get path to folder where data will be saved
+#     destination_path = self.interm_download_dir / COMPRESSED_FILENAME
 
-        Returns:
-            ID: str or None. String with paper ID or None if the 
-                paper could not be found in the database
-    """
-    try:
-        ID = database.loc[database.title == title]["id"].values[0]
-    except IndexError:
-        logger.debug(f"Could not find ID for paper with title: {title}")
-        return None
+#     # Try to download atlas data
+#     utils.retrieve_over_http(self.remote_url, destination_path)
 
-    return ID
+#     # Uncompress in brainglobe path:
+#     tar = tarfile.open(destination_path)
+#     tar.extractall(path=self.brainglobe_dir)
+#     tar.close()
+
+#     destination_path.unlink()
