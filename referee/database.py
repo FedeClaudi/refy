@@ -10,10 +10,12 @@ from .settings import (
     fields_of_study,
     low_year,
     keywords,
-    abstracts_dir,
     database_path,
+    abstracts_path,
 )
-from .utils import isin, to_txt
+from .utils import isin, to_json
+
+ABSTRACTS = {}  # store all abstracts before saving
 
 
 def exclude(entry):
@@ -79,10 +81,8 @@ def _parse_single_file(args):
         if exclude(entry):
             continue
 
-        # save abstract to file
-        to_txt(
-            str(entry["paperAbstract"]), abstracts_dir / f'{entry["id"]}.txt'
-        )
+        # store abstract
+        ABSTRACTS[entry["id"]] = entry["paperAbstract"]
 
         # keep metadata
         metadata["id"].append(str(entry["id"]))
@@ -127,9 +127,6 @@ def upack_database(folder):
     # extract data from all files
     files = list((folder / "compressed").glob("*.gz"))
 
-    # for debugging
-    # _parse_single_file((files[0], abstracts_dir, dfs_dir, 0, len(files)))
-
     n_cpus = multiprocessing.cpu_count()
     with multiprocessing.Pool(processes=n_cpus) as pool:
         args = [(fl, dfs_dir, n, len(files)) for n, fl in enumerate(files)]
@@ -154,18 +151,22 @@ def make_database(folder):
     files = list((folder / "dfs").glob("*.h5"))
 
     # Load all metadata into a single dataframe
-    logger.debug(f'Loading all dataframes ({len(files)} files)')
+    logger.debug(f"Loading all dataframes ({len(files)} files)")
     dfs = []
     count = 0
-    for f in track(files, description='Loading data...'):
+    for f in track(files, description="Loading data..."):
         count += len(pd.read_hdf(f, key="hdf"))
         dfs.append(pd.read_hdf(f, key="hdf"))
 
-    print(count)
+    # concatenate
     DATA = pd.concat(dfs)
     logger.debug(f"Found {len(DATA)} papers")
 
+    # save data
     DATA.to_hdf(database_path, key="hdf")
     logger.debug(
         f"Saved database at: {database_path}. {len(DATA)} entries in total"
     )
+
+    # save abstract
+    to_json(ABSTRACTS, abstracts_path)

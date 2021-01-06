@@ -1,5 +1,4 @@
-from pathlib import Path
-
+import json
 import sklearn.preprocessing as pp
 
 
@@ -8,24 +7,18 @@ def cosine_similarities(mat):
     return col_normed_mat.T * col_normed_mat
 
 
-def to_txt(string, fpath, overwrite=False):
-    """
-        Saves a string to a .txt file at a given location
-    """
-    if Path(fpath).exists() and not overwrite:
-        return
-
-    with open(fpath, "w", encoding="utf-8") as out:
-        out.write(string)
+def to_json(obj, fpath):
+    with open(fpath, "w") as out:
+        json.dump(obj, out)
 
 
 def from_txt(fpath):
-    try:
-        with open(fpath, "r", encoding="utf-8") as fin:
-            return fin.read()
-    except FileNotFoundError:
-        # logger.debug(f'Could not load text from file: {fpath.name}')
-        return ""
+    # try:
+    with open(fpath, "r", encoding="utf-8") as fin:
+        return fin.read()
+    # except FileNotFoundError:
+    #     # logger.debug(f'Could not load text from file: {fpath.name}')
+    #     return ""
 
 
 def isin(l1, l2):

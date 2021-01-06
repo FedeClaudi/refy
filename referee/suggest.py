@@ -31,7 +31,7 @@ class suggest:
             )
 
             # load metadata
-            papers = self.load(user_papers)
+            papers, abstracts = self.load(user_papers)
 
             # compute similarity matrix
             similarity = self.compute_similarity_matrix(papers)
@@ -47,6 +47,9 @@ class suggest:
             Arguments:
                 user_papers: str, path. Path to a .bib file with user's papers info
         """
+        # load abstracts
+        abstracts = load_abstracts()
+
         # load database papers
         self.n_completed = step_suggest_progress(
             self.progress,
@@ -77,9 +80,9 @@ class suggest:
 
         # concatenate
         papers = pd.concat([user_papers, database_papers], sort=False)
-        return papers
+        return papers, abstracts
 
-    def compute_similarity_matrix(self, papers):
+    def compute_similarity_matrix(self, papers, abstracts):
         """
             Given a dataframe with papers metadata, load the 
             abstract of each paper and use Frequency-Inverse Document Frequency (TF-IDF) embedding
@@ -98,7 +101,8 @@ class suggest:
             "Loading papers abstracts",
             self.n_completed,
         )
-        abstracts = load_abstracts(papers["id"], progress=self.progress)
+        # keep only abstracts for selected papers
+        abstracts = {ID: abstracts[ID] for ID in papers["id"]}
 
         # Construct the required TF-IDF matrix by fitting and transforming the data
         self.n_completed = step_suggest_progress(

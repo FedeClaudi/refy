@@ -25,9 +25,7 @@ vocabulary_size = (
 base_dir = Path(os.path.join(os.path.expanduser("~"), ".referee"))
 base_dir.mkdir(exist_ok=True)
 
-abstracts_dir = base_dir / "abstracts"
-abstracts_dir.mkdir(exist_ok=True)
-
+abstracts_path = base_dir / "abstracts.json"
 database_path = base_dir / "database.h5"
 if not database_path.exists():
     logger.debug("Database file does not exist")

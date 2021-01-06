@@ -1,44 +1,19 @@
 import pandas as pd
 from loguru import logger
+import json
 
-from .utils import from_txt
-from .settings import database_path, abstracts_dir
+from .settings import database_path, abstracts_path
 
 
-def load_abstracts(ids, progress=None):
+def load_abstracts():
     """
-        Load the abstracts of a list of papers and returns
-        them as a list of strings
-
-        Arguments:
-            ids: list of str. List of papers IDs from the database
-
+        loads all abstracts from the json file
+    
         Returns:
-            abstracts: list of str. List of abstracts
+            abstracts: dict with all abstracts
     """
-    abstracts = []
-
-    if progress is not None:
-        abs_task = progress.add_task(
-            "Loading abstracts...",
-            start=True,
-            total=len(ids),
-            current_task="loading",
-        )
-
-    for n, ID in enumerate(ids):
-        fpath = abstracts_dir / f"{ID}.txt"
-        abstracts.append(from_txt(fpath))
-
-        if progress is not None:
-            progress.update(abs_task, completed=n)
-
-    valid = len([x for x in abstracts if len(x) > 1])
-    logger.debug(f"Found {valid}/{len(ids)} valid abstracts")
-
-    if progress is not None:
-        progress.remove_task(abs_task)
-
+    abstracts = json.load(abstracts_path)
+    logger.debug(f"Loaded {len(abstracts)} abstracts")
     return abstracts
 
 
