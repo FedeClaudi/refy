@@ -65,7 +65,8 @@ def retrieve_over_http(url, output_file_path):
     """
     # Make Rich progress bar
     progress = Progress(
-        TextColumn("[bold]Downloading...", justify="right"),
+        TextColumn("[bold]Downloading: ", justify="right"),
+        output_file_path.stem,
         BarColumn(bar_width=None),
         "{task.percentage:>3.1f}%",
         "•",
@@ -74,10 +75,15 @@ def retrieve_over_http(url, output_file_path):
         TransferSpeedColumn(),
         "• ETA:",
         TimeRemainingColumn(),
+        transient=True,
     )
 
     CHUNK_SIZE = 4096
-    response = requests.get(url, stream=True)
+    response = requests.get(url, stream=True,)
+    if not response.ok:
+        raise ValueError(
+            f"Failed to get a good response when retrieving from {url}. Response: {response.status_code}"
+        )
 
     try:
         with progress:

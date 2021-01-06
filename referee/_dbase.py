@@ -1,10 +1,11 @@
 import pandas as pd
 from loguru import logger
 import json
+import tarfile
 
-from .settings import database_path, abstracts_path
+from .settings import database_path, abstracts_path, base_dir
 
-# from .utils import check_internet_connection, retrieve_over_http
+from .utils import check_internet_connection, retrieve_over_http
 
 # --------------------------------- load data -------------------------------- #
 
@@ -38,19 +39,29 @@ def load_database():
 
 
 # ------------------------------- download data ------------------------------ #
-# def download_atlas_data(self):
-#     """Download and extract atlas from remote url."""
-#     utils.check_internet_connection()
+def download_database():
+    """Download and extract database data from remote url."""
+    check_internet_connection()
+    print("Download database data")
 
-#     # Get path to folder where data will be saved
-#     destination_path = self.interm_download_dir / COMPRESSED_FILENAME
+    # get urls
+    remote_url_base = "https://gin.g-node.org/FedeClaudi/Referee/raw/master/"
+    database_url = remote_url_base + "database.tar.gz"
+    abstracts_url = remote_url_base + "abstracts.tar.gz"
 
-#     # Try to download atlas data
-#     utils.retrieve_over_http(self.remote_url, destination_path)
+    data = {
+        "database": (database_url, database_path),
+        "abstracts": (abstracts_url, abstracts_path),
+    }
 
-#     # Uncompress in brainglobe path:
-#     tar = tarfile.open(destination_path)
-#     tar.extractall(path=self.brainglobe_dir)
-#     tar.close()
+    # download and extract
+    for name, (url, path) in data.items():
+        logger.debug(f"Downloading and extracting: {name}")
 
-#     destination_path.unlink()
+        compressed_path = path.with_suffix(".tar.gz")
+        retrieve_over_http(url, compressed_path)
+
+        # Uncompress in brainglobe path:
+        tar = tarfile.open(str(compressed_path))
+        tar.extractall(path=base_dir)
+        tar.close()

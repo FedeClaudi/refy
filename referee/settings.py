@@ -1,7 +1,5 @@
 import os
 from pathlib import Path
-from loguru import logger
-
 
 DEBUG = True  # set to True if you wish to see debug logs
 
@@ -27,9 +25,6 @@ base_dir.mkdir(exist_ok=True)
 
 abstracts_path = base_dir / "abstracts.json"
 database_path = base_dir / "database.h5"
-if not database_path.exists():
-    logger.debug("Database file does not exist")
-
 
 # ----------------------------- database settings ---------------------------- #
 # when creating condensed database, keep only papers in these fields

@@ -47,8 +47,6 @@ class suggest:
             Arguments:
                 user_papers: str, path. Path to a .bib file with user's papers info
         """
-        # load abstracts
-        abstracts = load_abstracts()
 
         # load database papers
         self.n_completed = step_suggest_progress(
@@ -58,6 +56,9 @@ class suggest:
             self.n_completed,
         )
         database_papers = load_database()
+
+        # load abstracts
+        abstracts = load_abstracts()
 
         # Load and augment user's papers
         self.n_completed = step_suggest_progress(
