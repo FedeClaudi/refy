@@ -14,7 +14,7 @@ DEBUG = True  # set to True if you wish to see debug logs
     Set n_papers = -1 if you want to use the entire database
 """
 n_papers = (
-    100000  # max number of (randomly selected) papers from the database to use
+    -1  # max number of (randomly selected) papers from the database to use
 )
 vocabulary_size = (
     50000  # number of words to use to compute similarity across papers

@@ -12,7 +12,10 @@ def load_abstracts():
         Returns:
             abstracts: dict with all abstracts
     """
-    abstracts = json.load(abstracts_path)
+    with open(abstracts_path) as fin:
+        abstracts = json.load(fin)
+
+    abstracts = {k: a for k, a in abstracts.items() if a}
     logger.debug(f"Loaded {len(abstracts)} abstracts")
     return abstracts
 
@@ -25,6 +28,7 @@ def load_database():
             database: DataFrame with search database metadata
     """
     dbase = pd.read_hdf(database_path, key="hdf")
+    dbase["input"] = False  # differentiate from user input
     logger.debug(f"Loaded database with {len(dbase)} entries")
     return dbase
 

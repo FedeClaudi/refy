@@ -1,24 +1,10 @@
-# from referee import suggest
-from referee.settings import abstracts_dir
-from referee.utils import from_txt
-from rich.progress import track
-import json
+from referee import suggest
 
-data = {}
+bib_file = (
+    "/Users/federicoclaudi/Downloads/Paperpile - Jan 05 BibTeX Export.bib"
+)
 
-for fl in track(list(abstracts_dir.glob("*.txt"))):
-    name = fl.name.split(".")[0]
-    data[name] = from_txt(fl)
-
-print("writing")
-with open(abstracts_dir.parent / ("abstrcts" + ".json"), "w") as out:
-    json.dump(data, out)
-
-# bib_file = (
-#     "/Users/federicoclaudi/Downloads/Paperpile - Jan 05 BibTeX Export.bib"
-# )
-
-# suggest(bib_file)
+suggest(bib_file)
 
 
 # if __name__ == "__main__":

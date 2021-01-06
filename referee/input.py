@@ -12,18 +12,16 @@ def augment_data(papers, database):
         Given a dataframe with papers details, try to find the same papers
         in the papers database, then return a dataframe with matched papers
     """
-    logger.debug("Expanding user input")
-
     # Match user entries
     matches = database.loc[database.title.isin(papers["title"])]
     valid = len(matches)
     logger.debug(f"Found IDs for {valid}/{len(papers)} papers")
     print(
-        f"Matched {valid}/{len(papers)} papers with entries in the database.\n"
+        f"Matched {valid}/{len(papers)} user papers with entries in the database.\n"
         f"Using {valid} papers for search."
     )
 
-    return matches
+    return matches.copy()
 
 
 # --------------------------------- load data -------------------------------- #
@@ -84,17 +82,11 @@ def load_user_input(fpath):
         raise NotImplementedError(
             f"Cannot parse input with file type: {fpath.suffix}"
         )
-    logger.debug(
-        f"Loading user input from file: {fpath} | {len(data)} entries"
-    )
+    logger.debug(f"Loaded user input from file: {fpath} | {len(data)} entries")
 
-    # Get data
-    metadata = dict(authors=[], journal=[], title=[],)
+    # Clean up data
+    data = pd.DataFrame(data.values())
+    data = data[["title", "journal", "author"]]
+    data.columns = ["title", "journal", "authors"]
 
-    for entry in data.values():
-        entry = fill_missing(entry)
-        metadata["title"].append(entry["title"])
-        metadata["journal"].append(entry["journal"])
-        metadata["authors"].append(entry["authors"])
-
-    return pd.DataFrame(metadata)
+    return data

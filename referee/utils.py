@@ -12,15 +12,6 @@ def to_json(obj, fpath):
         json.dump(obj, out)
 
 
-def from_txt(fpath):
-    # try:
-    with open(fpath, "r", encoding="utf-8") as fin:
-        return fin.read()
-    # except FileNotFoundError:
-    #     # logger.debug(f'Could not load text from file: {fpath.name}')
-    #     return ""
-
-
 def isin(l1, l2):
     """
         Checks if any element of a list is included in a second list

@@ -34,7 +34,7 @@ class suggest:
             papers, abstracts = self.load(user_papers)
 
             # compute similarity matrix
-            similarity = self.compute_similarity_matrix(papers)
+            similarity = self.compute_similarity_matrix(papers, abstracts)
 
             # get suggestions
             self.get_suggestions(papers, similarity, N=N)
@@ -58,7 +58,6 @@ class suggest:
             self.n_completed,
         )
         database_papers = load_database()
-        database_papers["input"] = False
 
         # Load and augment user's papers
         self.n_completed = step_suggest_progress(
@@ -93,16 +92,22 @@ class suggest:
                 papers: DataFrame with papers metadata (both user's and database)
         """
         # Load each paper's abstract to create embedding
-        logger.debug(f"Loading abstracts for {len(papers)} papers")
-
         self.n_completed = step_suggest_progress(
             self.progress,
             self.task_id,
             "Loading papers abstracts",
             self.n_completed,
         )
-        # keep only abstracts for selected papers
-        abstracts = {ID: abstracts[ID] for ID in papers["id"]}
+
+        # keep only papers that have an abstract
+        abstracts = {
+            ID: abstracts[ID] for ID in papers["id"] if ID in abstracts.keys()
+        }
+        logger.debug(
+            f"Found {len(abstracts)} abstracts for {len(papers)} papers"
+        )
+
+        papers = papers.loc[papers["id"].isin(abstracts.keys())]
 
         # Construct the required TF-IDF matrix by fitting and transforming the data
         self.n_completed = step_suggest_progress(
@@ -119,7 +124,7 @@ class suggest:
             max_features=vocabulary_size,
         )
         tfidf_matrix = tfidf.fit_transform(abstracts)
-        logger.debug(f"tfidf matrix with shape: {tfidf_matrix.shape}")
+        logger.debug(f"Created tfidf matrix with shape: {tfidf_matrix.shape}")
 
         # compute cosine similarity
         self.n_completed = step_suggest_progress(
@@ -161,7 +166,7 @@ class suggest:
 
         if not len(selected):
             logger.debug(
-                f"Could not find any suggested papers for paper: {papers.title.values[paper_idx]}"
+                f'Could not find any suggested papers for paper: "{papers.title.values[paper_idx]}"'
             )
 
         return selected
@@ -180,6 +185,9 @@ class suggest:
                 similarity: sparse matrix with cosine similarity of all papers
         """
         logger.debug("Getting suggestions")
+
+        # keep the original paper indices
+        indexes = list(papers.index)
 
         # get lookups for idx -> title and idx -> is input
         papers = papers.reset_index()
@@ -202,15 +210,17 @@ class suggest:
 
         # find best matches for each paper
         suggestions = []
-        for n, (paper_idx, user_paper) in enumerate(papers.iterrows()):
+        for n, (idx, user_paper) in enumerate(papers.iterrows()):
             # only use papers from the user's library
             if not user_paper.input:
                 continue
 
             # get best matches for this paper
-            suggestions.append(
-                self.suggest_for_paper(papers, paper_idx, similarity)
+            suggested = self.suggest_for_paper(
+                papers, indexes[idx], similarity
             )
+            if len(suggested):
+                suggestions.append(suggested)
             self.progress.update(select_task, completed=n)
 
-        #  a = 1
+        # a = 1

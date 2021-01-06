@@ -1,6 +1,6 @@
-# from pyinspect import install_traceback
+from pyinspect import install_traceback
 
-# install_traceback()
+install_traceback()
 
 from referee.suggest import suggest
 from referee.settings import DEBUG, base_dir
