@@ -3,6 +3,8 @@ from pathlib import Path
 from loguru import logger
 
 
+DEBUG = False  # set to True if you wish to see debug logs
+
 # ----------------------------------- paths ---------------------------------- #
 # create base path folder
 base_dir = Path(os.path.join(os.path.expanduser("~"), ".referee"))
