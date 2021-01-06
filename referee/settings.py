@@ -30,6 +30,7 @@ database_path = base_dir / "database.h5"
 if not database_path.exists():
     logger.debug("Database file does not exist")
 
+
 # ----------------------------- database settings ---------------------------- #
 # when creating condensed database, keep only papers in these fields
 fields_of_study = (
