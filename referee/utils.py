@@ -1,5 +1,12 @@
 from pathlib import Path
 
+import sklearn.preprocessing as pp
+
+
+def cosine_similarities(mat):
+    col_normed_mat = pp.normalize(mat.tocsc(), axis=0)
+    return col_normed_mat.T * col_normed_mat
+
 
 def to_txt(string, fpath, overwrite=False):
     """

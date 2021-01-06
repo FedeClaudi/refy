@@ -3,7 +3,22 @@ from pathlib import Path
 from loguru import logger
 
 
-DEBUG = False  # set to True if you wish to see debug logs
+DEBUG = True  # set to True if you wish to see debug logs
+
+# ---------------------------------- TF-IDF ---------------------------------- #
+"""
+    Fitting TF-IDF on a vast dataset and using a large vocabulary can be very slow
+    and memory expensive. Use these settings to reduce the ammount of data used
+    in the process.
+
+    Set n_papers = -1 if you want to use the entire database
+"""
+n_papers = (
+    100000  # max number of (randomly selected) papers from the database to use
+)
+vocabulary_size = (
+    50000  # number of words to use to compute similarity across papers
+)
 
 # ----------------------------------- paths ---------------------------------- #
 # create base path folder
@@ -31,6 +46,7 @@ keywords = (
     "neurons",
     "neurotransmitter",
     "neuronal",
+    "behaviour",
 )  # only keep papers that have these keywords in the abstract
 
 
