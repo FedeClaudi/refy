@@ -1,11 +1,12 @@
 # from referee import suggest
-from referee.settings import abstracts_dir
+from referee.settings import base_dir
 from referee.utils import from_txt
 from rich.progress import track
 import json
 
 data = {}
 
+abstracts_dir = base_dir / "abstracts"
 for fl in track(list(abstracts_dir.glob("*.txt"))):
     name = fl.name.split(".")[0]
     data[name] = from_txt(fl)

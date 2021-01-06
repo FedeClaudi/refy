@@ -13,7 +13,7 @@ from .settings import (
     database_path,
     abstracts_path,
 )
-from .utils import isin, to_json
+from .utils import isin, to_json, compress_pandas, compress_json
 
 ABSTRACTS = {}  # store all abstracts before saving
 
@@ -170,3 +170,8 @@ def make_database(folder):
 
     # save abstract
     to_json(ABSTRACTS, abstracts_path)
+
+    # compress everything
+    logger.debug("Compressing")
+    compress_pandas(database_path)
+    compress_json(abstracts_path)
