@@ -1,7 +1,5 @@
 import json
 import sklearn.preprocessing as pp
-import pandas as pd
-import gzip
 import requests
 from rich.progress import (
     BarColumn,
@@ -113,29 +111,3 @@ def to_json(obj, fpath):
     """ saves an object to json """
     with open(fpath, "w") as out:
         json.dump(obj, out)
-
-
-def compress_pandas(fpath):
-    """
-        Loads and re-saves a pandas from a .h5
-        to a compressed .tar.gz file
-    """
-    name = fpath.name.split(".")[0]
-    new_path = fpath.parent / (name + "tar.gz")
-
-    pd.read_hdf(fpath, key="hdf").to_hdf(
-        new_path, key="hdf", compression="gzip"
-    )
-
-
-def compress_json(fpath):
-    """
-        Loads and re-saves a josn from a .json
-        to a compressed .tar.gz file
-    """
-    name = fpath.name.split(".")[0]
-    new_path = fpath.parent / (name + ".tar.gz")
-
-    with open(fpath, "r") as fin:
-        with gzip.open(new_path, "wt", encoding="UTF-8") as fout:
-            json.dump(json.load(fin), fout)

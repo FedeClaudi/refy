@@ -2,9 +2,7 @@ import pandas as pd
 from loguru import logger
 import json
 
-# import tarfile
-
-from .settings import database_path, abstracts_path  # , base_dir
+from .settings import database_path, abstracts_path
 
 from .utils import check_internet_connection, retrieve_over_http
 
@@ -60,8 +58,3 @@ def download_database():
         logger.debug(f"Downloading and extracting: {name}")
 
         retrieve_over_http(url, path)
-
-        # # Uncompress
-        # tar = tarfile.open(compressed_path,"r:gz")
-        # tar.extractall()
-        # tar.close()
