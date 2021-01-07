@@ -1,9 +1,10 @@
 import pandas as pd
 from loguru import logger
 import json
-import tarfile
 
-from .settings import database_path, abstracts_path, base_dir
+# import tarfile
+
+from .settings import database_path, abstracts_path  # , base_dir
 
 from .utils import check_internet_connection, retrieve_over_http
 
@@ -46,8 +47,8 @@ def download_database():
 
     # get urls
     remote_url_base = "https://gin.g-node.org/FedeClaudi/Referee/raw/master/"
-    database_url = remote_url_base + "database.tar.gz"
-    abstracts_url = remote_url_base + "abstracts.tar.gz"
+    database_url = remote_url_base + "database.h5"
+    abstracts_url = remote_url_base + "abstracts.json"
 
     data = {
         "database": (database_url, database_path),
@@ -58,10 +59,9 @@ def download_database():
     for name, (url, path) in data.items():
         logger.debug(f"Downloading and extracting: {name}")
 
-        compressed_path = path.with_suffix(".tar.gz")
-        retrieve_over_http(url, compressed_path)
+        retrieve_over_http(url, path)
 
-        # Uncompress in brainglobe path:
-        tar = tarfile.open(str(compressed_path))
-        tar.extractall(path=base_dir)
-        tar.close()
+        # # Uncompress
+        # tar = tarfile.open(compressed_path,"r:gz")
+        # tar.extractall()
+        # tar.close()
