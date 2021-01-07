@@ -3,11 +3,13 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import pandas as pd
 import numpy as np
 
-from .input import load_user_input, augment_data
+from .input import load_user_input
 from ._dbase import load_abstracts, load_database
-from .progress import suggest_progress, step_suggest_progress
+from .progress import suggest_progress
 from .settings import n_papers, vocabulary_size
-from .utils import cosine_similarities
+
+# from .utils import cosine_similarity
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 class suggest:
@@ -31,15 +33,59 @@ class suggest:
             )
 
             # load metadata
-            papers, abstracts = self.load(user_papers)
+            self.load_data(user_papers)
 
             # compute similarity matrix
-            similarity = self.compute_similarity_matrix(papers, abstracts)
+            self.compute_similarity_matrix()
 
             # get suggestions
-            self.get_suggestions(papers, similarity, N=N)
+            self.get_suggestions(N=N)
 
-    def load(self, user_papers):
+    @property
+    def n_abstracts(self):
+        return len(self.abstracts)
+
+    @property
+    def n_papers(self):
+        return len(self.papers)
+
+    @property
+    def n_user_papers(self):
+        return len(self.user_papers)
+
+    @property
+    def n_database_papers(self):
+        return self.n_papers - self.n_user_papers
+
+    @property
+    def user_papers(self):
+        return self.papers.loc[self.papers.input]
+
+    @property
+    def database_papers(self):
+        return self.papers.loc[not self.papers.input]
+
+    def paper_abstract(self, paper_id):
+        """
+            Returns a paper's abstract given the paper id string
+        """
+        try:
+            self.abstracts[paper_id]
+        except KeyError:
+            raise ValueError(
+                f"Could not find abstract for paper with ID: {paper_id}"
+            )
+
+    def _progress(self, task_name):
+        """
+            Update progress bar showing analysis status
+        """
+        self.n_completed += 1
+        self.progress.update(
+            self.task_id, current_task=task_name, completed=self.n_completed
+        )
+
+    def load_data(self, user_papers):
         """
             Load papers metadata for user papers
             and database papers
@@ -49,27 +95,22 @@ class suggest:
         """
 
         # load database papers
-        self.n_completed = step_suggest_progress(
-            self.progress,
-            self.task_id,
-            "Loading database papers",
-            self.n_completed,
-        )
+        self._progress("Loading database papers",)
         database_papers = load_database()
 
         # load abstracts
         abstracts = load_abstracts()
 
         # Load and augment user's papers
-        self.n_completed = step_suggest_progress(
-            self.progress,
-            self.task_id,
-            "Loading user papers",
-            self.n_completed,
-        )
+        self._progress("Loading user papers",)
         user_papers = load_user_input(user_papers)
-        user_papers = augment_data(user_papers, database_papers)
         user_papers["input"] = True
+
+        # add user papers' abstracts to abstracts corpus
+        self.abstracts = {
+            **abstracts,
+            **{p.title: p.abstract for i, p in user_papers.iterrows()},
+        }
 
         # Select only a random sample of the whole database
         if n_papers > 0:
@@ -78,101 +119,78 @@ class suggest:
                 f"Kept only {len(database_papers)} databse papers as requested by user"
             )
 
-        # concatenate
-        papers = pd.concat([user_papers, database_papers], sort=False)
-        return papers, abstracts
+        # concatenate user and database papers
+        self.papers = (
+            pd.concat([user_papers, database_papers], sort=False)
+            .reset_index()
+            .copy()
+        )
 
-    def compute_similarity_matrix(self, papers, abstracts):
+    def compute_similarity_matrix(self):
         """
             Given a dataframe with papers metadata, load the 
             abstract of each paper and use Frequency-Inverse Document Frequency (TF-IDF) embedding
             (https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html)
             with cosine similarity to create a similarity matrix
-
-            Arguments:
-                papers: DataFrame with papers metadata (both user's and database)
         """
         # Load each paper's abstract to create embedding
-        self.n_completed = step_suggest_progress(
-            self.progress,
-            self.task_id,
-            "Loading papers abstracts",
-            self.n_completed,
-        )
+        self._progress("Loading papers abstracts")
 
         # keep only papers that have an abstract
-        abstracts = {
-            ID: abstracts[ID] for ID in papers["id"] if ID in abstracts.keys()
-        }
         logger.debug(
-            f"Found {len(abstracts)} abstracts for {len(papers)} papers"
+            f"Found {self.n_abstracts} abstracts for {self.n_papers} papers"
         )
-
-        papers = papers.loc[papers["id"].isin(abstracts.keys())]
+        self.papers = self.papers.loc[
+            self.papers["id"].isin(self.abstracts.keys())
+        ]
 
         # Construct the required TF-IDF matrix by fitting and transforming the data
-        self.n_completed = step_suggest_progress(
-            self.progress, self.task_id, "Fitting tfidf", self.n_completed
-        )
-        logger.debug(
-            f"Fitting TfidfVectorizer model with {vocabulary_size} words"
-        )
+        self._progress("Fitting tfidf")
+        logger.debug(f"Fitting tfidf with {vocabulary_size} words")
 
-        # Define a TF-IDF Vectorizer Object. Remove all english stop words such as 'the', 'a'
         tfidf = TfidfVectorizer(
-            stop_words="english",
-            strip_accents="ascii",
-            max_features=vocabulary_size,
+            stop_words="english", max_features=vocabulary_size,
         )
-        tfidf_matrix = tfidf.fit_transform(abstracts)
+        tfidf_matrix = tfidf.fit_transform(self.abstracts)
         logger.debug(f"Created tfidf matrix with shape: {tfidf_matrix.shape}")
 
         # compute cosine similarity
-        self.n_completed = step_suggest_progress(
-            self.progress,
-            self.task_id,
-            "Computing similarity matrix",
-            self.n_completed,
-        )
-        similarity = cosine_similarities(tfidf_matrix.T)
+        self._progress("Computing similarity matrix",)
+        self.similarity = cosine_similarity(tfidf_matrix.T, dense_output=True)
         logger.debug(
-            f"Created similarity matrix with shape: {similarity.shape}"
+            f"Created similarity matrix with shape: {self.similarity.shape}"
         )
 
-        return similarity
-
-    def suggest_for_paper(self, papers, paper_idx, similarity):
+    def suggest_for_paper(self, user_paper, paper_idx):
         """
             Finds the best matches for a single paper
 
             Arguments:
-                papers: DataFrame with papers metadata (both user's and database)
                 paper_idx: int. Index of the paper to use
-                similarity: sparse matrix with cosine similarity of all papers
         """
         # Get the pairwsie similarity scores of all papers wrt the current one
         # get non-zero entries in similarity matrix
-        indexes = similarity[paper_idx].indices
-        values = [similarity[paper_idx, idx] for idx in indexes]
+        indexes = np.flatnonzero(self.similarity[paper_idx]).ravel()
+        values = [self.similarity[paper_idx, idx] for idx in indexes]
 
         # sort entries by similarity
         srtd = indexes[np.argsort(values)[::-1]]
 
         # select N best matches not already in user's library
-        selected_titles = [
-            self.lookup[idx] for idx in srtd if not self.lookup_input[idx]
-        ]
+        selected_titles = [self.lookup[idx] for idx in srtd]
 
-        selected = papers.loc[papers.title.isin(selected_titles)]
+        selected = self.papers.loc[self.papers.title.isin(selected_titles)]
 
         if not len(selected):
             logger.debug(
-                f'Could not find any suggested papers for paper: "{papers.title.values[paper_idx]}"'
+                f'Could not find any suggested papers for paper: "{user_paper.title}" '
+                f"with abstract:{self.paper_abstract(user_paper.title)}"
             )
+            return None
 
         return selected
 
-    def get_suggestions(self, papers, similarity, N=10):
+    def get_suggestions(self, N=10):
         """
             Finds the papers from the database that are not in the user's
             library but are most similar to the users papers.
@@ -182,46 +200,33 @@ class suggest:
 
             Arguments:
                 N: int, number of best papers to keep
-                papers: DataFrame with papers metadata (both user's and database)
-                similarity: sparse matrix with cosine similarity of all papers
         """
-        logger.debug("Getting suggestions")
-
-        # keep the original paper indices
-        indexes = list(papers.index)
-
-        # get lookups for idx -> title and idx -> is input
-        papers = papers.reset_index()
-        self.lookup = {i: t for i, t in zip(papers.index, papers.title)}
-        self.lookup_input = {
-            i: inp for i, inp in zip(papers.index, papers.input)
+        # get lookup for idx -> title
+        self.lookup = {
+            i: t for i, t in zip(self.papers.index, self.papers.title)
         }
+        logger.debug(f"Getting suggestions for {self.n_user_papers} papers")
 
         # progress bar
-        self.n_completed = step_suggest_progress(
-            self.progress, self.task_id, "Finding matches", self.n_completed,
-        )
-
+        self._progress("Finding matches")
         select_task = self.progress.add_task(
             "Selecting best matches...",
             start=True,
-            total=len(papers.loc[papers.input]),
+            total=self.n_user_papers,
             current_task="working...",
         )
 
         # find best matches for each paper
         suggestions = []
-        for n, (idx, user_paper) in enumerate(papers.iterrows()):
+        for n, (idx, user_paper) in enumerate(self.papers.iterrows()):
             # only use papers from the user's library
             if not user_paper.input:
                 continue
 
             # get best matches for this paper
-            suggested = self.suggest_for_paper(
-                papers, indexes[idx], similarity
-            )
-            if len(suggested):
+            suggested = self.suggest_for_paper(user_paper, idx)
+            if suggested is not None:
                 suggestions.append(suggested)
             self.progress.update(select_task, completed=n)
-
+        self.progress.remove_task(select_task)
         # a = 1

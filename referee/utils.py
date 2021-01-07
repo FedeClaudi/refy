@@ -1,5 +1,4 @@
 import json
-import sklearn.preprocessing as pp
 import requests
 from rich.progress import (
     BarColumn,
@@ -18,12 +17,6 @@ def isin(l1, l2):
         Checks if any element of a list is included in a second list
     """
     return any(x in l2 for x in l1)
-
-
-def cosine_similarities(mat):
-    """ computes cosine similarity """
-    col_normed_mat = pp.normalize(mat.tocsc(), axis=0)
-    return col_normed_mat.T * col_normed_mat
 
 
 # --------------------------------- internet --------------------------------- #

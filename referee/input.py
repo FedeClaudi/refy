@@ -1,30 +1,7 @@
 from bibtexparser.bparser import BibTexParser
 from pathlib import Path
 import pandas as pd
-import json
 from loguru import logger
-
-# ------------------------------- augment data ------------------------------- #
-
-
-def augment_data(papers, database):
-    """
-        Given a dataframe with papers details, try to find the same papers
-        in the papers database, then return a dataframe with matched papers
-    """
-    # Match user entries
-    matches = database.loc[database.title.isin(papers["title"])]
-    valid = len(matches)
-    logger.debug(f"Found IDs for {valid}/{len(papers)} papers")
-    print(
-        f"Matched {valid}/{len(papers)} user papers with entries in the database.\n"
-        f"Using {valid} papers for search."
-    )
-
-    return matches.copy()
-
-
-# --------------------------------- load data -------------------------------- #
 
 
 def load_from_bib(fpath):
@@ -40,17 +17,6 @@ def load_from_bib(fpath):
     return bib_database.entries_dict
 
 
-def load_from_json(fpath):
-    """
-        Reads from a .json file and returns a dictionary
-        with entries
-    """
-    with open(fpath) as json_file:
-        json_database = json.load(json_file)
-
-    return json_database
-
-
 def load_user_input(fpath):
     """
         Parse an input library to extract authors and topics.
@@ -60,19 +26,6 @@ def load_user_input(fpath):
         Arguments:
             fpath: str, Path. Path to a .bib file
     """
-
-    def fill_missing(entry):
-        ks = entry.keys()
-        if "title" not in ks:
-            entry["title"] = "no title"
-
-        if "journal" not in ks:
-            entry["journal"] = "no journal"
-
-        if "authors" not in ks:
-            entry["authors"] = "no authors"
-
-        return entry
 
     # load from file
     fpath = Path(fpath)
@@ -86,7 +39,18 @@ def load_user_input(fpath):
 
     # Clean up data
     data = pd.DataFrame(data.values())
-    data = data[["title", "journal", "author"]]
-    data.columns = ["title", "journal", "authors"]
+    data = data[["title", "journal", "author", "abstract"]]
+    data.columns = ["title", "journal", "authors", "abstract"]
+    data["id"] = data["title"]
+
+    # keep only papers with abstract
+    has_abs = [
+        True if isinstance(a, str) else False for a in data["abstract"].values
+    ]
+    logger.debug(f"{len(has_abs)}/{len(data)} user papers have abstracts")
+    print(
+        f"{len(has_abs)}/{len(data)} input papers have abstracts, using {len(has_abs)} papers for search."
+    )
+    data = data[has_abs]
 
     return data

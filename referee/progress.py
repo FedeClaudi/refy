@@ -36,12 +36,3 @@ suggest_progress = Progress(
     BarColumn(bar_width=None),
     "•",
 )
-
-
-def step_suggest_progress(progress, taskid, newtask, n_completed):
-    n_completed += 1
-    progress.update(
-        taskid, current_task=newtask, completed=n_completed,
-    )
-
-    return n_completed
