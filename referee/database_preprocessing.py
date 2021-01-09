@@ -5,6 +5,7 @@ import gzip
 import multiprocessing
 from loguru import logger
 from rich.progress import track
+from langdetect import detect
 
 from .settings import (
     fields_of_study,
@@ -16,8 +17,6 @@ from .settings import (
 from .utils import (
     isin,
     to_json,
-    compress_pandas,
-    compress_json,
     check_internet_connection,
     retrieve_over_http,
 )
@@ -58,6 +57,7 @@ def exclude(entry):
             * field of study
             * publication data
             * if they include keywords in their abstract
+            * they are written in english
 
         the parameters are set in settings.py
 
@@ -79,6 +79,15 @@ def exclude(entry):
     # keep only entries with keywords in abstract
     if not any((keyword in entry["paperAbstract"]) for keyword in keywords):
         return True
+
+    # keep only english
+    try:
+        lang = detect(entry["paperAbstract"][:50])
+    except Exception:
+        return False
+    else:
+        if lang != "en":
+            return True
 
     # ok all good
     return False
@@ -168,7 +177,7 @@ def upack_database(folder):
 
 
 def make_database(folder):
-    """π
+    """
         Given a database folder filled in by `unpack_database` this function creates the database proper. 
         It loads the dataframes and abstracts saved by `unpack_database` and uses 
         erm Frequency-Inverse Document Frequency (TF-IDF) embedding
@@ -179,6 +188,7 @@ def make_database(folder):
             folder: str, Path. Path to the folder where the database data is stored.
                 User must have run `unpack_database` on the folder's content first. 
     """
+    raise NotImplementedError(f"This code is old and needs checking")
     logger.debug(f"Making database from data folder: {folder}")
 
     folder = Path(folder)
@@ -204,8 +214,3 @@ def make_database(folder):
 
     # save abstract
     to_json(ABSTRACTS, abstracts_path)
-
-    # compress everything
-    logger.debug("Compressing")
-    compress_pandas(database_path)
-    compress_json(abstracts_path)

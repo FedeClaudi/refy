@@ -127,3 +127,9 @@ def to_json(obj, fpath):
     """ saves an object to json """
     with open(fpath, "w") as out:
         json.dump(obj, out)
+
+
+def from_json(fpath):
+    """ loads an object from json """
+    with open(fpath, "r") as fin:
+        return json.load(fin)

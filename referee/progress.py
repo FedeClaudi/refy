@@ -29,7 +29,45 @@ class CurrentTaskColumn(TextColumn):
             return ""
 
 
+class LossColumn(TextColumn):
+    _renderable_cache = {}
+
+    def __init__(self, *args):
+        pass
+
+    def render(self, task):
+        try:
+            return f"[{amber_light}]curr. loss: [bold {orange}]{task.fields['loss']:.3f}"
+        except (AttributeError, TypeError):
+            return ""
+
+
 # ------------------------------- progress bars ------------------------------ #
+# general porpuse progress
+progress = Progress(
+    "[progress.description]{task.description}",
+    "•",
+    TextColumn("[bold magenta]Step {task.completed}/{task.total}"),
+    "•",
+    BarColumn(bar_width=None),
+    "•",
+    TextColumn("Time remaining: ", justify="right"),
+    TimeRemainingColumn(),
+)
+
+train_progress = Progress(
+    "[progress.description]{task.description}",
+    "•",
+    TextColumn("[bold magenta]Step {task.completed}/{task.total}"),
+    LossColumn(),
+    "•",
+    BarColumn(bar_width=None),
+    "•",
+    TextColumn("Time remaining: ", justify="right"),
+    TimeRemainingColumn(),
+)
+
+
 # Overall progress bar for suggestions
 suggest_progress = Progress(
     "[progress.description]{task.description}",

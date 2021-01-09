@@ -1,9 +1,8 @@
 import pandas as pd
 from loguru import logger
-import json
 
 from .settings import database_path, abstracts_path
-
+from .utils import from_json
 
 # --------------------------------- load data -------------------------------- #
 
@@ -15,9 +14,9 @@ def load_abstracts():
         Returns:
             abstracts: dict with all abstracts
     """
-    with open(abstracts_path) as fin:
-        abstracts = json.load(fin)
+    abstracts = from_json(abstracts_path)
 
+    # remove empy abstracts
     abstracts = {k: a for k, a in abstracts.items() if a}
     logger.debug(f"Loaded {len(abstracts)} abstracts")
     return abstracts
