@@ -2,7 +2,6 @@ from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from gensim.parsing.porter import PorterStemmer
 from gensim.parsing.preprocessing import remove_stopwords
 from gensim.utils import simple_preprocess
-from gensim.models.callbacks import CallbackAny2Vec
 from nltk.tokenize import word_tokenize
 from loguru import logger
 import sys
@@ -91,37 +90,17 @@ class Corpus:
             words = simple_preprocess(doc, deacc=True)
             yield TaggedDocument(words=words, tags=[n])
 
+    def tolist(self):
+        """
+            Return the entire dataset as a list
+        """
+        return [x for x in self]
+
 
 # --------------------------------- training --------------------------------- #
 
 
-class EpochCallback(CallbackAny2Vec):
-    def __init__(self, progress, n_epochs, *args, **kwargs):
-        """
-            Callback for doc2vec training (logging etc.)
-        """
-        self.task = progress.add_task(
-            "Training doc2vec", total=n_epochs, start=True, completed=0,
-        )
-        self.progress = progress
-        self.epoch = 0
-
-    def on_epoch_begin(self, model):
-        logger.debug("Epoch #{} start".format(self.epoch))
-
-    def on_epoch_end(self, model):
-        # decrease the learning rate
-        model.alpha -= 0.0002
-
-        # fix the learning rate, no decay
-        model.min_alpha = model.alpha
-
-        # update progress
-        self.epoch += 1
-        self.progress.update(self.task, completed=self.epoch)
-
-
-def train_doc2vec_model(model=None, n_epochs=250, vec_size=50, alpha=0.025):
+def train_doc2vec_model(n_epochs=3, vec_size=50, alpha=0.025):
     """
         Trains a doc2vec model from gensim for embedding and similarity 
         evaluation of paper abstracts.
@@ -129,7 +108,8 @@ def train_doc2vec_model(model=None, n_epochs=250, vec_size=50, alpha=0.025):
         See: https://radimrehurek.com/gensim/models/doc2vec.html
 
         Arguments:
-            model: Doc2Vec. Optional, if None a new model is created
+            model: Doc2Vec. Optional, if None a new model is created (which is very slow).
+                Passing a loaded model skips the generate_vocab steps which is slow.
             n_epochs: int. Numberof epochs for training
             vec_size: int. Dimensionality of the feature vectors
             alpha: float. The initial learning rate
@@ -140,19 +120,19 @@ def train_doc2vec_model(model=None, n_epochs=250, vec_size=50, alpha=0.025):
     training_data = Corpus(list(load_abstracts().values()))
 
     # create model
-    if model is None:
-        logger.debug("Generating vocab")
-        model = Doc2Vec(
-            vec_size=vec_size,
-            alpha=alpha,
-            min_alpha=0.00025,
-            min_count=1,
-            dm=1,
-            workers=6,
-        )
-        model.build_vocab(
-            training_data, progress_per=10000,
-        )
+    logger.debug("Generating vocab")
+    model = Doc2Vec(
+        vec_size=vec_size,
+        alpha=alpha,
+        min_alpha=0.00025,
+        min_count=100,
+        sample=1e-05,
+        dm=1,
+        workers=6,
+    )
+    model.build_vocab(
+        training_data, progress_per=10000,
+    )
 
     # save with vocab
     model.save(str(base_dir / "untrained_d2v.model"))
@@ -161,16 +141,13 @@ def train_doc2vec_model(model=None, n_epochs=250, vec_size=50, alpha=0.025):
     logger.debug("Training")
     with progress:
         model.train(
-            training_data,
-            total_examples=model.corpus_count,
-            epochs=n_epochs,
-            callbacks=[EpochCallback(progress, n_epochs)],
+            training_data, total_examples=model.corpus_count, epochs=n_epochs,
         )
 
+    # save trained
     model.save(str(base_dir / "d2v.model"))
     logger.debug(f"Model Saved at: {base_dir/'d2v.model'}")
 
 
 if __name__ == "__main__":
-    # train_doc2vec_model(model=load_model(untrained=True))
     train_doc2vec_model()
