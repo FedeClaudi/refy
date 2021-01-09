@@ -9,13 +9,16 @@ DEBUG = True  # set to True if you wish to see debug logs
     and memory expensive. Use these settings to reduce the ammount of data used
     in the process.
 
+    The larger the `use_n_papers` the more papers are used for the comparison
+    The large the `vocabulary_size` the more words are used to compare paper's absracts
+
     Set n_papers = -1 if you want to use the entire database
 """
-n_papers = (
-    -1  # max number of (randomly selected) papers from the database to use
+use_n_papers = (
+    20000  # max number of (randomly selected) papers from the database to use
 )
 vocabulary_size = (
-    50000  # number of words to use to compute similarity across papers
+    250  # number of words to use to compute similarity across papers
 )
 
 # ----------------------------------- paths ---------------------------------- #

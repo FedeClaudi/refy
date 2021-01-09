@@ -6,6 +6,11 @@ While there's a few services out there that try to do the same, referee is uniqu
 * referee is completely open source, you can get the code and tweak it to improve the recomendation engine
 * referee doesn't just use a single paper or a subset of (overly generic) keywords to find new papers, instead it compares *all* of your papers' abstracts against a database of papers metadata, producing much more relevant results
 
+### disclaimer
+The dataset used here is a subset of a [larger dataset of scientific papers](https://www.semanticscholar.org/paper/Construction-of-the-Literature-Graph-in-Semantic-Ammar-Groeneveld/649def34f8be52c8b66281af98ae884c09aef38b). The dataset if focused on neuroscience papers published in the latest 30 years. If you want to include older papers or are interested in another field, then follow the instructions to create your custom database. 
+
+### (possible) future improvements
+- [ ] use [scibert](https://github.com/allenai/scibert) instead of tf-idf for creating the embedding. This should also make it possible to embed the database's papers before use (unlike tf-idf which needs to run on the entire corpus every time).
 
 ### Overview
 The core feature making referee unique among papers recomendation systems is that it analyzes **your entire library** of papers and matches it against a **vast database** of scientific papers to find new relevant papers. This is obviously an improvement compared e.g. to finding papers similar to *one paper you like*. 
@@ -15,7 +20,6 @@ In addition, referee doesn't just use things like "title", "authors", "keywords"
 First, you need to get data about your papers you want to use for the search. The best way is to export your library (or a subset of it) directly to a `.bib` file using your references menager of choice.
 
 Then, you can use...
-
 
 
 ## Database

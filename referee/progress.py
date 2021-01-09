@@ -1,8 +1,12 @@
 from rich.progress import (
     Progress,
     BarColumn,
+    DownloadColumn,
     TextColumn,
+    TransferSpeedColumn,
+    TimeRemainingColumn,
 )
+
 from myterial import (
     orange,
     amber_light,
@@ -35,4 +39,21 @@ suggest_progress = Progress(
     "•",
     BarColumn(bar_width=None),
     "•",
+    TextColumn("Time remaining: ", justify="right"),
+    TimeRemainingColumn(),
+)
+
+
+http_retrieve_progress = Progress(
+    TextColumn("[bold]Downloading: ", justify="right"),
+    TextColumn("[bold magenta]Step {task.filename}"),
+    BarColumn(bar_width=None),
+    "{task.percentage:>3.1f}%",
+    "•",
+    DownloadColumn(),
+    "• speed:",
+    TransferSpeedColumn(),
+    "• ETA:",
+    TimeRemainingColumn(),
+    transient=True,
 )

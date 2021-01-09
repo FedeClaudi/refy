@@ -1,6 +1,6 @@
 from pyinspect import install_traceback
 
-install_traceback()
+install_traceback(hide_locals=True)
 
 from referee.suggest import suggest
 from referee.settings import DEBUG, base_dir, database_path

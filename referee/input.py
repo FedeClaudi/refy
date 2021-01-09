@@ -45,7 +45,8 @@ def load_user_input(fpath):
 
     # keep only papers with abstract
     has_abs = [
-        True if isinstance(a, str) else False for a in data["abstract"].values
+        True if (isinstance(a, str) and len(a) > 1) else False
+        for a in data["abstract"].values
     ]
     logger.debug(f"{len(has_abs)}/{len(data)} user papers have abstracts")
     print(

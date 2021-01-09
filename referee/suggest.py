@@ -1,15 +1,14 @@
 from loguru import logger
-from sklearn.feature_extraction.text import TfidfVectorizer
+from rich import print
 import pandas as pd
 import numpy as np
 
 from .input import load_user_input
 from ._dbase import load_abstracts, load_database
 from .progress import suggest_progress
-from .settings import n_papers, vocabulary_size
-
-# from .utils import cosine_similarity
-from sklearn.metrics.pairwise import cosine_similarity
+from .settings import use_n_papers
+from .tfidf import get_tfidf_matrix
+from .utils import to_table
 
 
 class suggest:
@@ -28,7 +27,7 @@ class suggest:
             self.task_id = self.progress.add_task(
                 "Suggesting papers..",
                 start=True,
-                total=6,
+                total=5,
                 current_task="Loading database papers",
             )
 
@@ -113,50 +112,51 @@ class suggest:
         }
 
         # Select only a random sample of the whole database
-        if n_papers > 0:
-            database_papers = database_papers.sample(n_papers)
+        if use_n_papers > 0:
+            database_papers = database_papers.sample(use_n_papers)
             logger.debug(
                 f"Kept only {len(database_papers)} databse papers as requested by user"
             )
 
         # concatenate user and database papers
-        self.papers = (
-            pd.concat([user_papers, database_papers], sort=False)
-            .reset_index()
-            .copy()
-        )
+        self.papers = pd.concat(
+            [user_papers, database_papers], sort=False
+        ).copy()
 
-    def compute_similarity_matrix(self):
-        """
-            Given a dataframe with papers metadata, load the 
-            abstract of each paper and use Frequency-Inverse Document Frequency (TF-IDF) embedding
-            (https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html)
-            with cosine similarity to create a similarity matrix
-        """
-        # Load each paper's abstract to create embedding
-        self._progress("Loading papers abstracts")
+        # remove duplicates
+        self.papers = self.papers.drop_duplicates(subset="id", keep="first")
 
         # keep only papers that have an abstract
-        logger.debug(
-            f"Found {self.n_abstracts} abstracts for {self.n_papers} papers"
-        )
         self.papers = self.papers.loc[
             self.papers["id"].isin(self.abstracts.keys())
         ]
+        self.papers.reset_index()
 
-        # Construct the required TF-IDF matrix by fitting and transforming the data
-        self._progress("Fitting tfidf")
-        logger.debug(f"Fitting tfidf with {vocabulary_size} words")
+        # keep only abstracts for papers we've kept (if use_n_papers > 0)
+        self.abstracts = {
+            ID: self.abstracts[ID] for ID in self.papers["id"].values
+        }
 
-        tfidf = TfidfVectorizer(
-            stop_words="english", max_features=vocabulary_size,
+        logger.debug(
+            f"Loaded {self.n_papers} papers (of which {self.n_user_papers} are user's) and {self.n_abstracts} abstracts"
         )
-        tfidf_matrix = tfidf.fit_transform(self.abstracts)
-        logger.debug(f"Created tfidf matrix with shape: {tfidf_matrix.shape}")
+        if self.n_abstracts != self.n_papers:
+            raise ValueError(
+                "Error while loading data. Expected same number of papers and abstracts."
+                f"Instead {self.n_papers} papers and {self.n_abstracts} abstracts were found"
+            )
+
+    def compute_similarity_matrix(self):
+        """
+            Computes a one-to-one cosine similarity for vectors from tf-idf embedding
+        """
+        # Construct the required TF-IDF matrix
+        self._progress("Fitting tf-idf")
+        tfidf_matrix = get_tfidf_matrix(self.abstracts.values())
 
         # compute cosine similarity
         self._progress("Computing similarity matrix",)
-        self.similarity = cosine_similarity(tfidf_matrix.T, dense_output=True)
+        self.similarity = tfidf_matrix.dot(tfidf_matrix.T)
         logger.debug(
             f"Created similarity matrix with shape: {self.similarity.shape}"
         )
@@ -170,15 +170,18 @@ class suggest:
         """
         # Get the pairwsie similarity scores of all papers wrt the current one
         # get non-zero entries in similarity matrix
-        indexes = np.flatnonzero(self.similarity[paper_idx]).ravel()
-        values = [self.similarity[paper_idx, idx] for idx in indexes]
+        indexes = self.similarity[paper_idx].indices
 
         # sort entries by similarity
-        srtd = indexes[np.argsort(values)[::-1]]
+        try:
+            srtd = indexes[
+                np.argsort(self.similarity[paper_idx, indexes.data].data)[::-1]
+            ][:200]
+        except IndexError:
+            srtd = []
 
         # select N best matches not already in user's library
-        selected_titles = [self.lookup[idx] for idx in srtd]
-
+        selected_titles = [self.papers.title.values[idx] for idx in srtd]
         selected = self.papers.loc[self.papers.title.isin(selected_titles)]
 
         if not len(selected):
@@ -201,10 +204,6 @@ class suggest:
             Arguments:
                 N: int, number of best papers to keep
         """
-        # get lookup for idx -> title
-        self.lookup = {
-            i: t for i, t in zip(self.papers.index, self.papers.title)
-        }
         logger.debug(f"Getting suggestions for {self.n_user_papers} papers")
 
         # progress bar
@@ -227,6 +226,26 @@ class suggest:
             suggested = self.suggest_for_paper(user_paper, idx)
             if suggested is not None:
                 suggestions.append(suggested)
+
             self.progress.update(select_task, completed=n)
+
+            # if n == 5:
+            #     break
+
         self.progress.remove_task(select_task)
-        # a = 1
+        self.progress.remove_task(self.task_id)
+
+        logger.debug(f"Found suggestions for {len(suggestions)} papers")
+
+        # collate suggestions
+        suggestions = pd.concat(suggestions)
+
+        # remove papers in user database
+        suggestions = suggestions.loc[suggestions.input == False]
+
+        # sort by frequency of occurrence
+        suggestions["count"] = suggestions["title"].value_counts()
+        suggestions = suggestions.sort_values("count").reset_index()
+
+        # print
+        print(to_table(suggestions[:20]))

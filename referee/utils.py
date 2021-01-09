@@ -1,13 +1,51 @@
 import json
 import requests
-from rich.progress import (
-    BarColumn,
-    DownloadColumn,
-    TextColumn,
-    TransferSpeedColumn,
-    TimeRemainingColumn,
-    Progress,
-)
+from rich.table import Table
+from rich import print
+from rich.panel import Panel
+
+from myterial import orange, salmon
+
+from .progress import http_retrieve_progress
+
+# ------------------------------- print papers ------------------------------- #
+
+
+def to_table(papers):
+    """
+        prints a dataframe with papers metadata in a pretty format
+
+        Arguments:
+            papers: pd.DataFrame
+
+    """
+    # create table
+    table = Table(
+        show_header=True,
+        header_style="bold dim",
+        show_lines=True,
+        expand=False,
+        box=None,
+        title="Recomended papers",
+        title_style=f"bold {salmon}",
+    )
+    table.add_column("#", style="dim")
+    table.add_column("title", style=f"bold {orange}")
+    table.add_column("DOI")
+
+    # add papers to table
+    for i, paper in papers.iterrows():
+        table.add_row(
+            str(i),
+            paper.title,
+            paper.doi if isinstance(paper.doi, str) else "",
+        )
+
+    # fit in a panel
+    return Panel(
+        table, expand=True, border_style=f"{orange}", padding=(0, 2, 1, 2)
+    )
+
 
 # ----------------------------------- misc ----------------------------------- #
 
@@ -54,21 +92,6 @@ def retrieve_over_http(url, output_file_path):
     output_file_path : str or Path
         Full file destination for download.
     """
-    # Make Rich progress bar
-    progress = Progress(
-        TextColumn("[bold]Downloading: ", justify="right"),
-        output_file_path.stem,
-        BarColumn(bar_width=None),
-        "{task.percentage:>3.1f}%",
-        "•",
-        DownloadColumn(),
-        "• speed:",
-        TransferSpeedColumn(),
-        "• ETA:",
-        TimeRemainingColumn(),
-        transient=True,
-    )
-
     CHUNK_SIZE = 4096
     response = requests.get(url, stream=True,)
     if not response.ok:
@@ -77,7 +100,7 @@ def retrieve_over_http(url, output_file_path):
         )
 
     try:
-        with progress:
+        with http_retrieve_progress as progress:
             task_id = progress.add_task(
                 "download",
                 filename=output_file_path.name,
