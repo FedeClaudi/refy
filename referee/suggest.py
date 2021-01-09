@@ -3,12 +3,12 @@ from rich import print
 import pandas as pd
 import numpy as np
 
-from .input import load_user_input
-from .database import load_abstracts, load_database
-from .progress import suggest_progress
-from .settings import use_n_papers
-from .tfidf import get_tfidf_matrix
-from .utils import to_table
+from referee.input import load_user_input
+from referee.database import load_abstracts, load_database
+from referee.progress import suggest_progress
+from referee.settings import use_n_papers
+from referee.utils import to_table
+from referee.doc2vec import load_model
 
 
 class suggest:
@@ -30,6 +30,9 @@ class suggest:
                 total=5,
                 current_task="Loading database papers",
             )
+
+            # load d2v model
+            self.d2v = load_model()
 
             # load metadata
             self.load_data(user_papers)
@@ -145,21 +148,6 @@ class suggest:
                 "Error while loading data. Expected same number of papers and abstracts."
                 f"Instead {self.n_papers} papers and {self.n_abstracts} abstracts were found"
             )
-
-    def compute_similarity_matrix(self):
-        """
-            Computes a one-to-one cosine similarity for vectors from tf-idf embedding
-        """
-        # Construct the required TF-IDF matrix
-        self._progress("Fitting tf-idf")
-        tfidf_matrix = get_tfidf_matrix(self.abstracts.values())
-
-        # compute cosine similarity
-        self._progress("Computing similarity matrix",)
-        self.similarity = tfidf_matrix.dot(tfidf_matrix.T)
-        logger.debug(
-            f"Created similarity matrix with shape: {self.similarity.shape}"
-        )
 
     def suggest_for_paper(self, user_paper, paper_idx):
         """

@@ -22,20 +22,42 @@ First, you need to get data about your papers you want to use for the search. Th
 Then, you can use...
 
 
-## Database
+## Making your own database
 Referee uses a subset of the vast and eccelent corpus of scientific publications' metadata from [Semanthic Scholar](https://www.semanticscholar.org/paper/Construction-of-the-Literature-Graph-in-Semantic-Ammar-Groeneveld/649def34f8be52c8b66281af98ae884c09aef38b). 
+The dataset used by referee is focused on neuroscience papers written in english and published in the last 30 years. If you wish to include a different set of papers in your database, you can make your custom database and use it with referee by executing the following steps.
 
-### Downloading the dataset
-One day the cleaned dataset will be put online in a way where it can easily (and automatically) be downloaded when using this software. 
-Note however that the entire dataset is relatively large (~2GB) so it may take a while to download it. 
+### 1. Download whole corpus
+You'll first need to download the whole corpus from Semantic Scholar. You can find the data and download instructions [here](http://s2-public-api-prod.us-west-2.elasticbeanstalk.com/corpus/download/). Once the data are downloaded, save them in a folder where you want to base your dataset-creation process
 
-### Making your own database
-The database used here is a medium size (800k papers) subset of the whole database, we've discarded papers that were published too long ago and that did not seem to be relevant for neuroscience. It's easy however to create your own version of the database to use for the searches. To do so:
+### 2. Uncompressing data
+The downloaded corpus is compressed. To uncompress the files use `referee.database_preprocessing.upack_database` pasing to it the path to the folder where you've downloaded the data.
 
-1. Download the data from [Semanthic Scholar](http://s2-public-api-prod.us-west-2.elasticbeanstalk.com/corpus/download/)
-2. Extract the compressed files and save the abstracts to a .txt file with `referee.database.upack_database`
-3. Collate data from different files into a single one with: `referee.database.make_database`
+### 3. Specifying your parameters
+The selection of a subset of papers from the corpus is based on a set of parameters (e.g. year of publication) matched against criteria specified (and described) in `referee.settings`. Edit the criteria to adapt the dataset selection to your needs
 
-The `unpack_database` step is the key one, that's when papers are discarded/included in the database. This steps uses parameters set in
-`referee.settings` such that, e.g. `settings.fields_of_study` specifies which field of studies are relevant, papers from other fields will be discarded.
-If you've cloned this repository and downloaded the compressed dataset, you can change the settings value and run the steps above to create your own database.
+### 4. Creating the dataset
+Simply run `referee.database_preprocessing.make_database`
+
+### 5. Training doc2vec model
+Papers semanthic similarity is estimated using a doc2vec model trained on the entire dataset.
+After modifying the dataset to your needs, you'll have to re-train the model by running `referee.doc2vec.train_doc2vec_model`
+
+### summary:
+An example code for creating your dataset (after having downloaded the corpus and edited the settings)
+``` python
+
+from referee.database_preprocessing import upack_database, make_database
+from referee.doc2vec import train_doc2vec_model
+from pathlib import Path
+
+folder = Path('path to your data')
+
+# unpack and create
+unpack_database(folder)
+make_database(folder)
+
+# train new d2v model
+train_doc2vec_model()
+
+```
+

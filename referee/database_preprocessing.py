@@ -179,8 +179,6 @@ def upack_database(folder):
 def make_database(folder):
     """
         Given a database folder filled in by `unpack_database` this function creates the database proper. 
-        It loads the dataframes and abstracts saved by `unpack_database` and uses 
-        erm Frequency-Inverse Document Frequency (TF-IDF) embedding
         (https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html)
         and cosine similarity to create a similarity matrix across papers, which is then saved to file. 
 
