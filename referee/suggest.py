@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 from .input import load_user_input
-from ._dbase import load_abstracts, load_database
+from .database import load_abstracts, load_database
 from .progress import suggest_progress
 from .settings import use_n_papers
 from .tfidf import get_tfidf_matrix

@@ -4,7 +4,7 @@ install_traceback(hide_locals=True)
 
 from referee.suggest import suggest
 from referee.settings import DEBUG, base_dir, database_path
-from referee._dbase import download_database
+from referee.database import download_database
 
 # logging settings
 from loguru import logger
