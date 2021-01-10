@@ -29,6 +29,19 @@ class CurrentTaskColumn(TextColumn):
             return ""
 
 
+class FileNameColumn(TextColumn):
+    _renderable_cache = {}
+
+    def __init__(self, *args):
+        pass
+
+    def render(self, task):
+        try:
+            return f"[bold {orange}]{task.fields['filename']}"
+        except (AttributeError, TypeError):
+            return ""
+
+
 class LossColumn(TextColumn):
     _renderable_cache = {}
 
@@ -47,7 +60,8 @@ class LossColumn(TextColumn):
 progress = Progress(
     "[progress.description]{task.description}",
     "•",
-    TextColumn("[bold magenta]Step {task.completed}/{task.total}"),
+    TextColumn("[bold magenta]Completed {task.completed}/{task.total}"),
+    "•",
     "•",
     BarColumn(bar_width=None),
     "•",
@@ -58,7 +72,8 @@ progress = Progress(
 train_progress = Progress(
     "[progress.description]{task.description}",
     "•",
-    TextColumn("[bold magenta]Step {task.completed}/{task.total}"),
+    TextColumn("[bold magenta]Completed {task.completed}/{task.total}"),
+    "•",
     LossColumn(),
     "•",
     BarColumn(bar_width=None),
@@ -72,7 +87,8 @@ train_progress = Progress(
 suggest_progress = Progress(
     "[progress.description]{task.description}",
     "•",
-    TextColumn("[bold magenta]Step {task.completed}/{task.total}"),
+    TextColumn("[bold magenta]Completed {task.completed}/{task.total}"),
+    "•",
     CurrentTaskColumn(),
     "•",
     BarColumn(bar_width=None),
@@ -84,7 +100,7 @@ suggest_progress = Progress(
 
 http_retrieve_progress = Progress(
     TextColumn("[bold]Downloading: ", justify="right"),
-    TextColumn("[bold magenta]Step {task.filename}"),
+    FileNameColumn(),
     BarColumn(bar_width=None),
     "{task.percentage:>3.1f}%",
     "•",

@@ -29,16 +29,24 @@ def to_table(papers):
         title="Recomended papers",
         title_style=f"bold {salmon}",
     )
-    table.add_column("#", style="dim")
-    table.add_column("title", style=f"bold {orange}")
+    table.add_column("#")
+    table.add_column(":thumbs_up:", style="dim", justify="center")
+    table.add_column("title", style=f"bold {orange}", min_width=50)
     table.add_column("DOI")
+    table.add_column("Authors", style="dim", max_width=40, overflow="crop")
 
     # add papers to table
     for i, paper in papers.iterrows():
+        authors = " ".join(paper.authors)
+        if len(authors) > 30:
+            authors = authors[:27] + "..."
+
         table.add_row(
-            str(i),
+            str(i + 1),
+            str(paper["count"]),
             paper.title,
             paper.doi if isinstance(paper.doi, str) else "",
+            authors,
         )
 
     # fit in a panel
@@ -103,9 +111,9 @@ def retrieve_over_http(url, output_file_path):
         with http_retrieve_progress as progress:
             task_id = progress.add_task(
                 "download",
-                filename=output_file_path.name,
                 start=True,
                 total=int(response.headers.get("content-length", 0)),
+                filename=output_file_path.name,
             )
 
             with open(output_file_path, "wb") as fout:

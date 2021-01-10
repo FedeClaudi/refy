@@ -9,58 +9,84 @@ import re
 
 sys.path.append("./")
 
-from referee.settings import base_dir
+from referee.settings import base_dir, d2v_model_path, remote_url_base
 from referee.database import load_abstracts
 from referee.progress import progress
+from referee.utils import (
+    check_internet_connection,
+    retrieve_over_http,
+)
 
 # for gensim logging
 import logging
 
-handler = logging.basicConfig(
-    format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO
-)
+
+class D2V:
+    def __init__(self):
+        """
+            Class to load and use Doc2Vec model at inference
+        """
+        self.model = load_model()
+
+    def predict(self, input_abstract, N=20):
+        """
+            Predict the best mach from the input abstract
+            from the database abstracts according to the d2v model.
+
+            Arguments:
+                input_abstract: str. Input abstract
+                N: int. Number of best matches to keep
+
+            Returns:
+                matches_id: list. List of indices for the best matches.
+                    The indices correspond to the 
+        """
+        # convert input to TaggedDocument
+        input_abstract = TaggedDocument(
+            words=word_tokenize(input_abstract.lower()), tags=[-1]
+        )
+
+        # infer
+        inferred_vector = self.model.infer_vector(input_abstract.words)
+
+        # get best match (second prediction)
+        matches = self.model.docvecs.most_similar(
+            [inferred_vector], topn=N + 1
+        )  # [1:]
+        matches_id = [m[0] for m in matches]
+
+        return matches_id
 
 
 # ----------------------------------- utils ---------------------------------- #
-def load_model(untrained=False):
+def load_model():
     """
         Loads a previously saved model
     """
     logger.debug("Loading pre-trained doc2vec model")
 
-    return Doc2Vec.load(
-        str(
-            base_dir
-            / ("d2v.model" if not untrained else "untrained_d2v.model")
-        )
-    )
+    return Doc2Vec.load(str(d2v_model_path))
 
 
-def preprocess(data):
+def download():
     """
-        Preprocess a corpus of text for using with a doc2vec
-        model.
-
-        Arguments:
-            data: list of strings
-        
-        Returns:
-            training_data: list of TaggedDocument objects
+        Downloads a pre-trained d2v model from the remote url
     """
-    training_data = []
-    with progress:
-        preprocess_task = progress.add_task(
-            "Preprocessing", total=len(data), start=True
-        )
+    check_internet_connection()
+    logger.debug("Downloading trained d2v model from web")
 
-        for i, _d in enumerate(data):
-            training_data.append(
-                TaggedDocument(words=word_tokenize(_d.lower()), tags=[i])
-            )
-            progress.update(preprocess_task, completed=i)
+    data = {
+        "model": (remote_url_base + "d2v_model.model", d2v_model_path),
+        "docvecs": (
+            remote_url_base + "d2v_model.model.docvecs.vectors_docs.npy",
+            d2v_model_path.parent / "d2v_model.model.docvecs.vectors_docs.npy",
+        ),
+    }
 
-    progress.remove_task(preprocess_task)
-    return training_data
+    # download and extract
+    for name, (url, path) in data.items():
+        logger.debug(f"Downloading and extracting: {name}")
+        retrieve_over_http(url, path)
 
 
 # ------------------------------- preprocessing ------------------------------ #
@@ -90,17 +116,11 @@ class Corpus:
             words = simple_preprocess(doc, deacc=True)
             yield TaggedDocument(words=words, tags=[n])
 
-    def tolist(self):
-        """
-            Return the entire dataset as a list
-        """
-        return [x for x in self]
-
 
 # --------------------------------- training --------------------------------- #
 
 
-def train_doc2vec_model(n_epochs=3, vec_size=50, alpha=0.025):
+def train_doc2vec_model(n_epochs=50, vec_size=250, alpha=0.025):
     """
         Trains a doc2vec model from gensim for embedding and similarity 
         evaluation of paper abstracts.
@@ -115,9 +135,13 @@ def train_doc2vec_model(n_epochs=3, vec_size=50, alpha=0.025):
             alpha: float. The initial learning rate
     """
     logger.debug("Training doc2vec model")
+    logging.basicConfig(
+        format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO
+    )
 
     # get training data
     training_data = Corpus(list(load_abstracts().values()))
+    training_data.save()
 
     # create model
     logger.debug("Generating vocab")
@@ -133,9 +157,6 @@ def train_doc2vec_model(n_epochs=3, vec_size=50, alpha=0.025):
     model.build_vocab(
         training_data, progress_per=10000,
     )
-
-    # save with vocab
-    model.save(str(base_dir / "untrained_d2v.model"))
 
     # train
     logger.debug("Training")

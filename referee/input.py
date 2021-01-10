@@ -48,10 +48,13 @@ def load_user_input(fpath):
         True if (isinstance(a, str) and len(a) > 1) else False
         for a in data["abstract"].values
     ]
-    logger.debug(f"{len(has_abs)}/{len(data)} user papers have abstracts")
-    print(
-        f"{len(has_abs)}/{len(data)} input papers have abstracts, using {len(has_abs)} papers for search."
-    )
-    data = data[has_abs]
 
+    data = data[has_abs].copy()
+    data["input"] = True
+
+    # log and return
+    logger.debug(f"{len(data)}/{len(has_abs)} user papers have abstracts")
+    print(
+        f"{len(data)}/{len(has_abs)} input papers have abstracts, using {len(data)} papers for search."
+    )
     return data

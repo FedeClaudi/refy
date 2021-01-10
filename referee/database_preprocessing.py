@@ -13,6 +13,7 @@ from .settings import (
     keywords,
     database_path,
     abstracts_path,
+    remote_url_base,
 )
 from .utils import (
     isin,
@@ -27,12 +28,11 @@ ABSTRACTS = {}  # store all abstracts before saving
 
 
 def download_database():
-    """Download and extract database data from remote url."""
+    """Download and extract pre-processed database data from remote url."""
     check_internet_connection()
     print("Download database data")
 
     # get urls
-    remote_url_base = "https://gin.g-node.org/FedeClaudi/Referee/raw/master/"
     database_url = remote_url_base + "database.h5"
     abstracts_url = remote_url_base + "abstracts.json"
 
@@ -186,7 +186,13 @@ def make_database(folder):
             folder: str, Path. Path to the folder where the database data is stored.
                 User must have run `unpack_database` on the folder's content first. 
     """
-    raise NotImplementedError(f"This code is old and needs checking")
+    raise NotImplementedError(
+        f"This code is old and needs checking. Make sure that only papers with abstracts are kept"
+    )
+
+    # TODO self.papers = self.papers.drop_duplicates(subset="id", keep="first")
+    # TODO include year !
+
     logger.debug(f"Making database from data folder: {folder}")
 
     folder = Path(folder)
