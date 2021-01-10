@@ -28,6 +28,25 @@ class D2V:
         """
         self.model = load_model()
 
+    def _infer(self, input_abstract):
+        """ 
+            Inference part of the prediction of best matches.
+            Convertes an input abstract string into its vector representation
+
+            Arguments:
+                input_abstract: str. Input abstract
+
+            Returns:
+                inferred_vector: np.ndarray
+        """
+        # convert input to TaggedDocument
+        input_abstract = TaggedDocument(
+            words=word_tokenize(input_abstract.lower()), tags=[-1]
+        )
+
+        # infer
+        return self.model.infer_vector(input_abstract.words)
+
     def predict(self, input_abstract, N=20):
         """
             Predict the best mach from the input abstract
@@ -41,18 +60,10 @@ class D2V:
                 matches_id: list. List of indices for the best matches.
                     The indices correspond to the 
         """
-        # convert input to TaggedDocument
-        input_abstract = TaggedDocument(
-            words=word_tokenize(input_abstract.lower()), tags=[-1]
-        )
-
-        # infer
-        inferred_vector = self.model.infer_vector(input_abstract.words)
+        inferred_vector = self._infer(input_abstract)
 
         # get best match (second prediction)
-        matches = self.model.docvecs.most_similar(
-            [inferred_vector], topn=N + 1
-        )  # [1:]
+        matches = self.model.docvecs.most_similar([inferred_vector], topn=N)
         matches_id = [m[0] for m in matches]
 
         return matches_id
