@@ -6,7 +6,6 @@ from gensim.parsing.preprocessing import (
     strip_multiple_whitespaces,
     strip_punctuation,
 )
-from gensim.utils import simple_preprocess
 from loguru import logger
 import sys
 
@@ -44,14 +43,13 @@ class D2V:
                 inferred_vector: np.ndarray
         """
         # clean up input
-        clean = _preprocess_string(input_abstract)
-        words = simple_preprocess(clean, deacc=True)
+        words = _preprocess_string(input_abstract)
 
         # convert input to TaggedDocument
         input_abstract = TaggedDocument(words=words, tags=[-1])
 
         # infer
-        return self.model.infer_vector(input_abstract.words)
+        return self.model.infer_vector(input_abstract.words, epochs=100)
 
     def predict(self, input_abstract, N=20):
         """
@@ -123,7 +121,7 @@ def _preprocess_string(string):
 
 
 class Corpus:
-    def __init__(self, training_data):
+    def __init__(self):
         """
             Class to pre-process and iterate over training data for d2v
         """
@@ -131,13 +129,7 @@ class Corpus:
 
     def __iter__(self):
         for ID, doc in self.training_data.items():
-            # Clean up string
-            clean = _preprocess_string(doc)
-
-            # tokenize and remove stopwords
-            words = simple_preprocess(clean, deacc=True)
-            raise ValueError(words)
-            yield TaggedDocument(words=words, tags=[ID])
+            yield TaggedDocument(words=_preprocess_string(doc), tags=[ID])
 
 
 def train_doc2vec_model(n_epochs=50, vec_size=500, alpha=0.025):
