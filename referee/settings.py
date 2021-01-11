@@ -31,6 +31,7 @@ keywords = (
     "neurotransmitter",
     "neuronal",
     "behaviour",
+    "behavior",
     "cognition",
     "neural network",
     "deep learning",

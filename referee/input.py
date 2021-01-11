@@ -27,6 +27,10 @@ def load_user_input(fpath):
             fpath: str, Path. Path to a .bib file
     """
 
+    raise NotImplementedError(
+        "See if you can match entries with the database to get full abstracts"
+    )
+
     # load from file
     fpath = Path(fpath)
     if fpath.suffix == ".bib":

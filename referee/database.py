@@ -1,13 +1,13 @@
 import pandas as pd
 from loguru import logger
 
-from .settings import (
+from referee.settings import (
     database_path,
     abstracts_path,
     biorxiv_abstracts_path,
     biorxiv_database_path,
 )
-from .utils import from_json
+from referee.utils import from_json
 
 # --------------------------------- load data -------------------------------- #
 

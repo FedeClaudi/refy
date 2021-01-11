@@ -6,7 +6,7 @@ from rich.panel import Panel
 
 from myterial import orange, salmon
 
-from .progress import http_retrieve_progress
+from referee.progress import http_retrieve_progress
 
 # ------------------------------- print papers ------------------------------- #
 

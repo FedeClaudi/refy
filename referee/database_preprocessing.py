@@ -6,6 +6,7 @@ import multiprocessing
 from loguru import logger
 from rich.progress import track
 from langdetect import detect
+from rich import print
 
 import sys
 
@@ -95,7 +96,7 @@ def exclude(entry):
     try:
         lang = detect(abstract[:50])
     except Exception:
-        return False
+        return True
     else:
         if lang != "en":
             return True
@@ -116,6 +117,7 @@ def _unpack_single_file(args):
     # prepare paths
     name = fpath.name.split(".")[0]
     out = dfs_dir / (name + ".h5")
+    out_abs = dfs_dir / (name + "_abstracts.json")
 
     # load data
     if fpath.suffix == ".gz":
@@ -127,11 +129,10 @@ def _unpack_single_file(args):
             data = datafile.readlines()
 
     # create a dataframe with relevant data
-    metadata = dict(
-        title=[], authors=[], doi=[], url=[], field_of_study=[], id=[], year=[]
-    )
+    metadata = dict(title=[], authors=[], doi=[], url=[], id=[], year=[])
 
     # loop over all entries
+    abstracts = {}
     for entry in data:
         entry = json.loads(entry)
 
@@ -139,7 +140,7 @@ def _unpack_single_file(args):
             continue
 
         # store abstract
-        ABSTRACTS[entry["id"]] = entry["paperAbstract"]
+        abstracts[entry["id"]] = entry["paperAbstract"]
 
         # keep metadata
         metadata["year"].append(
@@ -152,13 +153,15 @@ def _unpack_single_file(args):
         )
         metadata["doi"].append(entry["doi"] or "")
         metadata["url"].append(entry["s2Url"] or "")
-        metadata["field_of_study"].append(entry["fieldsOfStudy"] or [""])
 
     # save
     metadata = pd.DataFrame(metadata)
     metadata.to_hdf(out, key="hdf")
+
+    to_json(abstracts, out_abs)
+
     logger.debug(
-        f"Uncompressed: {fpath.name} [{n}/{N}]. kept {len(metadata)}/{len(data)} papers"
+        f"Uncompressed: {fpath.name} [{n}/{N}]. Kept {len(metadata)}/{len(data)} papers and {len(abstracts)} abstracts"
     )
 
 
@@ -194,11 +197,7 @@ def upack_database(folder):
     n_cpus = multiprocessing.cpu_count() - 2
     with multiprocessing.Pool(processes=n_cpus) as pool:
         args = [(fl, dfs_dir, n, len(files)) for n, fl in enumerate(files)]
-        pool.map(_unpack_single_file, args)
-
-    # save abstract
-    logger.debug(f"Saving {len(ABSTRACTS)} to json file")
-    to_json(ABSTRACTS, folder / abstracts_path.name)
+        pool.map(_unpack_single_file, args, chunksize=1)
 
 
 def make_database(folder):
@@ -224,27 +223,51 @@ def make_database(folder):
     # concatenate
     DATA = pd.concat(dfs)
     logger.debug(f"Found {len(DATA)} papers")
+    print(
+        "\n\n[b green]Titles samples:",
+        *DATA.title.values[:15],
+        "\n",
+        sep="\n\n",
+    )
 
     # remove duplicates
     DATA = DATA.drop_duplicates(subset="title")
+    logger.debug(f"After dropping duplicates  {len(DATA)} papers are left")
 
-    # save abstracts to correct path
-    abstracts = from_json(folder / abstracts_path.name)
-
-    abstracts = {k: a for k, a in abstracts.items() if a}
-    to_json(abstracts, abstracts_path)
-    logger.debug(f"Kept {len(abstracts)} abstracts")
+    # load and save abstracts
+    logger.debug("Loading abstracts")
+    abs_list = [from_json(f) for f in (folder / "dfs").glob("*.json")]
+    abstracts = {k: v for d in abs_list for k, v in d.items()}
+    logger.debug(f"Loaded {len(abstracts)} abstracts")
 
     # keep only papers that have an abstract
+    logger.debug("Cleaning up data")
     DATA = DATA.loc[DATA["id"].isin(abstracts.keys())]
 
     # save data
+    logger.debug("Saving database")
     DATA.to_hdf(database_path, key="hdf")
     logger.debug(
-        f"Saved database at: {database_path}. {len(DATA)} entries in total [{len(abstracts)} abstracts]"
+        f"Saved database at: {database_path}. {len(DATA)} entries in total"
     )
+
+    # and only abstracts that have a paper
+    logger.debug("Cleaning up abstracts")
+    cleaned_abstracts = {k: abstracts[k] for k in DATA["id"].values}
+
+    if len(cleaned_abstracts) != len(DATA):
+        raise ValueError(
+            f"Found {len(cleaned_abstracts)} abstracts and {len(DATA)} papers !!"
+        )
+
+    logger.debug(
+        f"Saving {len(cleaned_abstracts)} abstracts to file: {abstracts_path}"
+    )
+    to_json(cleaned_abstracts, abstracts_path)
 
 
 if __name__ == "__main__":
     fld = "M:\\PAPERS_DBASE"
-    upack_database(fld)
+    # upack_database(fld)
+
+    make_database(fld)

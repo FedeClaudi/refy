@@ -1,11 +1,14 @@
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
-from gensim.parsing.porter import PorterStemmer
-from gensim.parsing.preprocessing import remove_stopwords
+from gensim.parsing.preprocessing import (
+    remove_stopwords,
+    stem,
+    preprocess_string,
+    strip_multiple_whitespaces,
+    strip_punctuation,
+)
 from gensim.utils import simple_preprocess
-from nltk.tokenize import word_tokenize
 from loguru import logger
 import sys
-import re
 
 sys.path.append("./")
 
@@ -40,10 +43,12 @@ class D2V:
             Returns:
                 inferred_vector: np.ndarray
         """
+        # clean up input
+        clean = _preprocess_string(input_abstract)
+        words = simple_preprocess(clean, deacc=True)
+
         # convert input to TaggedDocument
-        input_abstract = TaggedDocument(
-            words=word_tokenize(input_abstract.lower()), tags=[-1]
-        )
+        input_abstract = TaggedDocument(words=words, tags=[-1])
 
         # infer
         return self.model.infer_vector(input_abstract.words)
@@ -63,7 +68,7 @@ class D2V:
         """
         inferred_vector = self._infer(input_abstract)
 
-        # get best match (second prediction)
+        # get N best matches
         matches = self.model.docvecs.most_similar([inferred_vector], topn=N)
         matches_id = [m[0] for m in matches]
 
@@ -101,7 +106,20 @@ def download():
         retrieve_over_http(url, path)
 
 
-# ------------------------------- preprocessing ------------------------------ #
+# --------------------------------- training --------------------------------- #
+def _preprocess_string(string):
+    """
+        Cleans up (e.g. strips punctuation) and tokenizes an input string
+        to preprare for d2v processing
+    """
+    string = string.lower()
+    filters = (
+        remove_stopwords,
+        stem,
+        strip_multiple_whitespaces,
+        strip_punctuation,
+    )
+    return preprocess_string(string, filters)
 
 
 class Corpus:
@@ -109,30 +127,20 @@ class Corpus:
         """
             Class to pre-process and iterate over training data for d2v
         """
-        self.training_data = training_data
+        self.training_data = load_abstracts()
 
     def __iter__(self):
-        p = PorterStemmer()
-        for n, doc in enumerate(self.training_data):
-            doc = re.sub(
-                r"http\S+", "", doc, flags=re.MULTILINE
-            )  # remove web addresses
+        for ID, doc in self.training_data.items():
+            # Clean up string
+            clean = _preprocess_string(doc)
 
-            # remove symbols
-            for symbol in (r"'", r"\(", r"\)", r"\=", r"\#"):
-                doc = re.sub(symbol, "", doc)
-
-            # clean up
-            doc = remove_stopwords(doc)
-            doc = p.stem_sentence(doc)
-            words = simple_preprocess(doc, deacc=True)
-            yield TaggedDocument(words=words, tags=[n])
+            # tokenize and remove stopwords
+            words = simple_preprocess(clean, deacc=True)
+            raise ValueError(words)
+            yield TaggedDocument(words=words, tags=[ID])
 
 
-# --------------------------------- training --------------------------------- #
-
-
-def train_doc2vec_model(n_epochs=50, vec_size=250, alpha=0.025):
+def train_doc2vec_model(n_epochs=50, vec_size=500, alpha=0.025):
     """
         Trains a doc2vec model from gensim for embedding and similarity 
         evaluation of paper abstracts.
@@ -152,8 +160,7 @@ def train_doc2vec_model(n_epochs=50, vec_size=250, alpha=0.025):
     )
 
     # get training data
-    training_data = Corpus(list(load_abstracts().values()))
-    training_data.save()
+    training_data = Corpus()
 
     # create model
     logger.debug("Generating vocab")
@@ -169,7 +176,7 @@ def train_doc2vec_model(n_epochs=50, vec_size=250, alpha=0.025):
         workers=multiprocessing.cpu_count(),
     )
     model.build_vocab(
-        training_data, progress_per=10000,
+        training_data, progress_per=25000,
     )
 
     # train
