@@ -22,7 +22,8 @@ from referee.settings import (
 from referee.utils import (
     isin,
     to_json,
-    check_internet_connection,
+    from_json,
+    raise_on_no_connection,
     retrieve_over_http,
 )
 
@@ -31,9 +32,9 @@ ABSTRACTS = {}  # store all abstracts before saving
 # ----------------------------- download database ---------------------------- #
 
 
-def download_database():
+@raise_on_no_connection
+def download():
     """Download and extract pre-processed database data from remote url."""
-    check_internet_connection()
     print("Download database data")
 
     # get urls
@@ -111,7 +112,6 @@ def _unpack_single_file(args):
         function is to facilitate multiprocessing
     """
     fpath, dfs_dir, n, N = args
-    logger.debug(f"Parsing compressed file: {fpath.name} [{n}/{N}]")
 
     # prepare paths
     name = fpath.name.split(".")[0]
@@ -128,7 +128,7 @@ def _unpack_single_file(args):
 
     # create a dataframe with relevant data
     metadata = dict(
-        title=[], authors=[], doi=[], url=[], field_of_study=[], id=[]
+        title=[], authors=[], doi=[], url=[], field_of_study=[], id=[], year=[]
     )
 
     # loop over all entries
@@ -142,16 +142,24 @@ def _unpack_single_file(args):
         ABSTRACTS[entry["id"]] = entry["paperAbstract"]
 
         # keep metadata
-        metadata["year"].append(entry["year"])
+        metadata["year"].append(
+            str(entry["year"]) if "year" in entry.keys() else ""
+        )
         metadata["id"].append(str(entry["id"]))
         metadata["title"].append(str(entry["title"]))
-        metadata["authors"].append([str(a["name"]) for a in entry["authors"]])
+        metadata["authors"].append(
+            ", ".join([str(a["name"]) for a in entry["authors"]])
+        )
         metadata["doi"].append(entry["doi"] or "")
         metadata["url"].append(entry["s2Url"] or "")
         metadata["field_of_study"].append(entry["fieldsOfStudy"] or [""])
 
     # save
-    pd.DataFrame(metadata).to_hdf(out, key="hdf")
+    metadata = pd.DataFrame(metadata)
+    metadata.to_hdf(out, key="hdf")
+    logger.debug(
+        f"Uncompressed: {fpath.name} [{n}/{N}]. kept {len(metadata)}/{len(data)} papers"
+    )
 
 
 def upack_database(folder):
@@ -183,10 +191,14 @@ def upack_database(folder):
     files = list((folder / "compressed").glob("*.gz"))
     logger.debug(f"Uncompressing {len(files)} files")
 
-    n_cpus = multiprocessing.cpu_count()
+    n_cpus = multiprocessing.cpu_count() - 2
     with multiprocessing.Pool(processes=n_cpus) as pool:
         args = [(fl, dfs_dir, n, len(files)) for n, fl in enumerate(files)]
         pool.map(_unpack_single_file, args)
+
+    # save abstract
+    logger.debug(f"Saving {len(ABSTRACTS)} to json file")
+    to_json(ABSTRACTS, folder / abstracts_path.name)
 
 
 def make_database(folder):
@@ -198,9 +210,6 @@ def make_database(folder):
             folder: str, Path. Path to the folder where the database data is stored.
                 User must have run `unpack_database` on the folder's content first. 
     """
-
-    # TODO self.papers = self.papers.drop_duplicates(subset="id", keep="first")
-
     logger.debug(f"Making database from data folder: {folder}")
 
     folder = Path(folder)
@@ -219,11 +228,23 @@ def make_database(folder):
     # remove duplicates
     DATA = DATA.drop_duplicates(subset="title")
 
+    # save abstracts to correct path
+    abstracts = from_json(folder / abstracts_path.name)
+
+    abstracts = {k: a for k, a in abstracts.items() if a}
+    to_json(abstracts, abstracts_path)
+    logger.debug(f"Kept {len(abstracts)} abstracts")
+
+    # keep only papers that have an abstract
+    DATA = DATA.loc[DATA["id"].isin(abstracts.keys())]
+
     # save data
     DATA.to_hdf(database_path, key="hdf")
     logger.debug(
-        f"Saved database at: {database_path}. {len(DATA)} entries in total"
+        f"Saved database at: {database_path}. {len(DATA)} entries in total [{len(abstracts)} abstracts]"
     )
 
-    # save abstract
-    to_json(ABSTRACTS, abstracts_path)
+
+if __name__ == "__main__":
+    fld = "M:\\PAPERS_DBASE"
+    upack_database(fld)

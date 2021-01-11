@@ -62,7 +62,6 @@ progress = Progress(
     "•",
     TextColumn("[bold magenta]Completed {task.completed}/{task.total}"),
     "•",
-    "•",
     BarColumn(bar_width=None),
     "•",
     TextColumn("Time remaining: ", justify="right"),

@@ -13,7 +13,7 @@ from referee.settings import base_dir, d2v_model_path, remote_url_base
 from referee.database import load_abstracts
 from referee.progress import progress
 from referee.utils import (
-    check_internet_connection,
+    raise_on_no_connection,
     retrieve_over_http,
 )
 import multiprocessing
@@ -80,11 +80,11 @@ def load_model():
     return Doc2Vec.load(str(d2v_model_path))
 
 
+@raise_on_no_connection
 def download():
     """
         Downloads a pre-trained d2v model from the remote url
     """
-    check_internet_connection()
     logger.debug("Downloading trained d2v model from web")
 
     data = {

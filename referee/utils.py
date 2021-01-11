@@ -91,6 +91,44 @@ def check_internet_connection(
     return False
 
 
+def raise_on_no_connection(func):
+    """
+        Decorator to avoid running a function when there's no internet
+    """
+
+    def inner(*args, **kwargs):
+        if not check_internet_connection():
+            raise ConnectionError("No internet connection found.")
+        else:
+            return func(*args, **kwargs)
+
+    return inner
+
+
+def _request(url, stream=False):
+    """
+        Sends a request to an url and
+        makes sure it worked
+    """
+    response = requests.get(url, stream=stream)
+    if not response.ok:
+        raise ValueError(
+            f"Failed to get a good response when retrieving from {url}. Response: {response.status_code}"
+        )
+    return response
+
+
+@raise_on_no_connection
+def request(url):
+    """ 
+        Sends a request to a URL and returns the JSON
+        it fetched (if it went through).
+    """
+    response = _request(url, stream=False)
+    return response.json()
+
+
+@raise_on_no_connection
 def retrieve_over_http(url, output_file_path):
     """Download file from remote location, with progress bar.
     Parameters
@@ -101,11 +139,7 @@ def retrieve_over_http(url, output_file_path):
         Full file destination for download.
     """
     CHUNK_SIZE = 4096
-    response = requests.get(url, stream=True,)
-    if not response.ok:
-        raise ValueError(
-            f"Failed to get a good response when retrieving from {url}. Response: {response.status_code}"
-        )
+    response = _request(url, stream=True,)
 
     try:
         with http_retrieve_progress as progress:
