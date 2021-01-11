@@ -30,6 +30,9 @@ keywords = (
     "neurotransmitter",
     "neuronal",
     "behaviour",
+    "cognition",
+    "neural network",
+    "deep learning",
 )  # only keep papers that have these keywords in the abstract
 
 

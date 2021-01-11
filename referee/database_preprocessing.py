@@ -7,7 +7,11 @@ from loguru import logger
 from rich.progress import track
 from langdetect import detect
 
-from .settings import (
+import sys
+
+sys.path.append("./")
+
+from referee.settings import (
     fields_of_study,
     low_year,
     keywords,
@@ -15,7 +19,7 @@ from .settings import (
     abstracts_path,
     remote_url_base,
 )
-from .utils import (
+from referee.utils import (
     isin,
     to_json,
     check_internet_connection,
@@ -53,11 +57,12 @@ def download_database():
 
 def exclude(entry):
     """
-        Only select papers based on:
+        Select papers based on:
             * field of study
             * publication data
             * if they include keywords in their abstract
             * they are written in english
+            * if they have an abstract
 
         the parameters are set in settings.py
 
@@ -76,13 +81,18 @@ def exclude(entry):
     if entry["year"] < low_year:
         return True
 
+    # Keep only entries that have an abstract
+    abstract = entry["paperAbstract"].lower()
+    if len(abstract) < 1:
+        return True
+
     # keep only entries with keywords in abstract
-    if not any((keyword in entry["paperAbstract"]) for keyword in keywords):
+    if not any((keyword in abstract) for keyword in keywords):
         return True
 
     # keep only english
     try:
-        lang = detect(entry["paperAbstract"][:50])
+        lang = detect(abstract[:50])
     except Exception:
         return False
     else:
@@ -93,15 +103,19 @@ def exclude(entry):
     return False
 
 
-def _parse_single_file(args):
+def _unpack_single_file(args):
+    """
+        Unpacks a single .gz file and filters it
+        to only keep relevant papers.
+        The (ugly) way the arguments are passed to this
+        function is to facilitate multiprocessing
+    """
     fpath, dfs_dir, n, N = args
-    logger.debug(f"Parsing compressed file: {fpath.name}")
+    logger.debug(f"Parsing compressed file: {fpath.name} [{n}/{N}]")
 
-    # check if file was opened before
+    # prepare paths
     name = fpath.name.split(".")[0]
     out = dfs_dir / (name + ".h5")
-    # if out.exists():
-    #     return pd.read_hdf(out, key='hdf')
 
     # load data
     if fpath.suffix == ".gz":
@@ -128,6 +142,7 @@ def _parse_single_file(args):
         ABSTRACTS[entry["id"]] = entry["paperAbstract"]
 
         # keep metadata
+        metadata["year"].append(entry["year"])
         metadata["id"].append(str(entry["id"]))
         metadata["title"].append(str(entry["title"]))
         metadata["authors"].append([str(a["name"]) for a in entry["authors"]])
@@ -135,18 +150,15 @@ def _parse_single_file(args):
         metadata["url"].append(entry["s2Url"] or "")
         metadata["field_of_study"].append(entry["fieldsOfStudy"] or [""])
 
-    metadata = pd.DataFrame(metadata)
-
     # save
-    print(f"Processed {n}/{N} kept {len(metadata)}/{len(data)} papers")
-    metadata.to_hdf(out, key="hdf")
+    pd.DataFrame(metadata).to_hdf(out, key="hdf")
 
 
 def upack_database(folder):
     """
         Opens up .gz with papers metadata info from 
         http://s2-public-api-prod.us-west-2.elasticbeanstalk.com/corpus/download/
-        and saves selected papers to dataframes and their abstracts to .txt
+        and saves is at a .h5 file. 
         The operation is parallelized to speed things up. 
 
         For each .gz file:
@@ -169,46 +181,43 @@ def upack_database(folder):
 
     # extract data from all files
     files = list((folder / "compressed").glob("*.gz"))
+    logger.debug(f"Uncompressing {len(files)} files")
 
     n_cpus = multiprocessing.cpu_count()
     with multiprocessing.Pool(processes=n_cpus) as pool:
         args = [(fl, dfs_dir, n, len(files)) for n, fl in enumerate(files)]
-        pool.map(_parse_single_file, args)
+        pool.map(_unpack_single_file, args)
 
 
 def make_database(folder):
     """
-        Given a database folder filled in by `unpack_database` this function creates the database proper. 
-        (https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html)
-        and cosine similarity to create a similarity matrix across papers, which is then saved to file. 
+        Given a database folder filled in by `unpack_database` 
+        this function creates the database proper. 
 
         Arguments:
             folder: str, Path. Path to the folder where the database data is stored.
                 User must have run `unpack_database` on the folder's content first. 
     """
-    raise NotImplementedError(
-        f"This code is old and needs checking. Make sure that only papers with abstracts are kept"
-    )
 
     # TODO self.papers = self.papers.drop_duplicates(subset="id", keep="first")
-    # TODO include year !
 
     logger.debug(f"Making database from data folder: {folder}")
 
     folder = Path(folder)
     files = list((folder / "dfs").glob("*.h5"))
+    logger.debug(f"Found {len(files)} files")
 
     # Load all metadata into a single dataframe
-    logger.debug(f"Loading all dataframes ({len(files)} files)")
     dfs = []
-    count = 0
     for f in track(files, description="Loading data..."):
-        count += len(pd.read_hdf(f, key="hdf"))
         dfs.append(pd.read_hdf(f, key="hdf"))
 
     # concatenate
     DATA = pd.concat(dfs)
     logger.debug(f"Found {len(DATA)} papers")
+
+    # remove duplicates
+    DATA = DATA.drop_duplicates(subset="title")
 
     # save data
     DATA.to_hdf(database_path, key="hdf")

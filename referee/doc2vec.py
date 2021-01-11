@@ -16,6 +16,7 @@ from referee.utils import (
     check_internet_connection,
     retrieve_over_http,
 )
+import multiprocessing
 
 # for gensim logging
 import logging
@@ -160,10 +161,12 @@ def train_doc2vec_model(n_epochs=50, vec_size=250, alpha=0.025):
         vec_size=vec_size,
         alpha=alpha,
         min_alpha=0.00025,
-        min_count=100,
-        sample=1e-05,
-        dm=1,
-        workers=6,
+        min_count=2,
+        sample=0,
+        dm=0,
+        hs=0,
+        negative=5,
+        workers=multiprocessing.cpu_count(),
     )
     model.build_vocab(
         training_data, progress_per=10000,

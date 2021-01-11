@@ -182,4 +182,4 @@ class suggest:
 
 
 if __name__ == "__main__":
-    suggest(example_path)
+    suggest(example_path, N=100)
