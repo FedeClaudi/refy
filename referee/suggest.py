@@ -28,6 +28,7 @@ class suggest:
                     will be saved
         """
         self.since = since
+        self.savepath
 
         with suggest_progress as progress:
             self.progress = progress

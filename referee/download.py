@@ -66,20 +66,20 @@ def download_all():
     d2v_model = remote_url_base + "d2v_model.model"
     d2v_vecs = remote_url_base + "d2v_model.model.docvecs.vectors_docs.npy"
     d2v_wv = remote_url_base + "d2v_model.model.wv.vectors.npy"
+    d2v_sin = remote_url_base + "d2v_model.model.trainables.syn1neg.npy"
     example_library = remote_url_base + "example_library.bib"
 
     # organize urls and paths
+    d2v_base = d2v_model_path.parent
     data = [
         (database_url, database_path),
         (abstracts_url, abstracts_path),
         (biorxiv_database_url, biorxiv_database_path),
         (biorxiv_abstracts_url, biorxiv_abstracts_path),
         (d2v_model, d2v_model_path),
-        (
-            d2v_vecs,
-            d2v_model_path.parent / "d2v_model.model.docvecs.vectors_docs.npy",
-        ),
-        (d2v_wv, d2v_model_path.parent / "d2v_model.model.wv.vectors.npy"),
+        (d2v_vecs, d2v_base / "d2v_model.model.docvecs.vectors_docs.npy"),
+        (d2v_wv, d2v_base / "d2v_model.model.wv.vectors.npy"),
+        (d2v_sin, d2v_base / "d2v_model.model.trainables.syn1neg.npy"),
         (example_library, example_path),
     ]
 

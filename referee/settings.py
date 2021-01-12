@@ -2,21 +2,32 @@ import os
 from pathlib import Path
 
 DEBUG = True  # set to True if you wish to see debug logs
+TEST_MODE = False  # gets set to True when running tests
 
 # ----------------------------------- paths ---------------------------------- #
 # create base path folder
 base_dir = Path(os.path.join(os.path.expanduser("~"), ".referee"))
 base_dir.mkdir(exist_ok=True)
 
+# semantic scholar dbase paths
 abstracts_path = base_dir / "abstracts.json"
 database_path = base_dir / "database.h5"
 
+# test dbase paths
+test_abstracts_path = base_dir / "test_abstracts.json"
+test_database_path = base_dir / "test_database.h5"
+
+# biorxiv dbase paths
 biorxiv_abstracts_path = base_dir / "biorxiv_abstracts.json"
 biorxiv_database_path = base_dir / "biorxiv_database.h5"
 
+# d2v model paths
 d2v_model_path = base_dir / "d2v_model.model"
+
+# example library
 example_path = base_dir / "example_library.bib"
 
+# urls
 remote_url_base = "https://gin.g-node.org/FedeClaudi/Referee/raw/master/"
 
 # ----------------------------- database settings ---------------------------- #

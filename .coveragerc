@@ -1,0 +1,13 @@
+[run]
+omit = 
+    referee/database/biorxiv.py
+    referee/database/semantic_scholar.py
+
+[report]
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
