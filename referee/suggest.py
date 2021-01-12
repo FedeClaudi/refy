@@ -14,7 +14,7 @@ from referee.settings import example_path
 class suggest:
     suggestions_per_paper = 100  # for each paper find N suggestions
 
-    def __init__(self, user_papers, N=20, since=None):
+    def __init__(self, user_papers, N=20, since=None, savepath=None):
         """
             Suggest new relevant papers based on the user's
             library.
@@ -24,6 +24,8 @@ class suggest:
                 N: int. Number of papers to suggest
                 since: int or None. If an int is passed it must be a year,
                     only papers more recent that the given year are kept for recomendation
+                savepath: str, Path. Path pointing to a .csv file where the recomendations
+                    will be saved
         """
         self.since = since
 
@@ -55,20 +57,9 @@ class suggest:
     def n_user_papers(self):
         return len(self.user_papers)
 
-    def paper_abstract(self, paper_id):
-        """
-            Returns a paper's abstract given the paper id string
-        """
-        try:
-            self.abstracts[paper_id]
-        except KeyError:
-            raise ValueError(
-                f"Could not find abstract for paper with ID: {paper_id}"
-            )
-
     def _progress(self, task_name):
         """
-            Update progress bar showing analysis status
+            Update progress bar
         """
         self.n_completed += 1
         self.progress.update(
@@ -77,8 +68,7 @@ class suggest:
 
     def load_data(self, user_papers):
         """
-            Load papers metadata for user papers
-            and database papers
+            Load papers metadata for user papers and database papers
 
             Arguments:
                 user_papers: str, path. Path to a .bib file with user's papers info
@@ -124,13 +114,47 @@ class suggest:
         if selected.empty:
             logger.debug(
                 f'Could not find any suggested papers for paper: "{user_paper_title}" '
-                f"with abstract:{self.paper_abstract(user_paper_title)}"
             )
 
         return {
             t: self.suggestions_per_paper - n
             for n, t in enumerate(selected.title.values)
         }
+
+    def _collate_suggestions(self, points):
+        """
+            Given a dictionart of points for each suggested paper,
+            this function returns a dataframe with papers ordered 
+            by their score
+
+            Arguments:
+                points: dict of title:point entries for each recomended paper
+
+            Returns
+                suggestions: pd.DataFrame with suggested papers ordred by score
+        """
+        # collate recomendations
+        suggestions = self.database.loc[
+            self.database.title.isin(points.keys())
+        ].drop_duplicates(subset="title")
+
+        # Get each paper's score
+        max_score = self.suggestions_per_paper * self.n_user_papers
+        suggestions["score"] = [
+            points[title] / max_score for title in suggestions.title.values
+        ]
+
+        # sort recomendations based on score
+        suggestions = suggestions.sort_values(
+            "score", ascending=False
+        ).reset_index()
+
+        # keep only papers published within a given year
+        if self.since:
+            suggestions = suggestions.loc[suggestions.year >= self.since]
+            suggestions = suggestions.reset_index()
+
+        return suggestions
 
     def get_suggestions(self, N=20):
         """
@@ -155,7 +179,7 @@ class suggest:
         )
 
         # find best matches for each paper
-        counts = {}
+        points = {}
         for n, (idx, user_paper) in enumerate(self.user_papers.iterrows()):
             # keep track of recomendations across all user papers
             paper_suggestions = self.suggest_for_paper(
@@ -163,36 +187,17 @@ class suggest:
             )
 
             for suggested, points in paper_suggestions.items():
-                if suggested in counts.keys():
-                    counts[suggested] += points
+                if suggested in points.keys():
+                    points[suggested] += points
                 else:
-                    counts[suggested] = points
+                    points[suggested] = points
 
             self.progress.update(select_task, completed=n)
         self.progress.remove_task(select_task)
         self.progress.remove_task(self.task_id)
 
-        # collate recomendations
-        suggestions = self.database.loc[
-            self.database.title.isin(counts.keys())
-        ].drop_duplicates(subset="title")
-
-        # Get each paper's score
-        max_score = self.suggestions_per_paper * self.n_user_papers
-        suggestions["score"] = [
-            counts[title] / max_score for title in suggestions.title.values
-        ]
-
-        # sort recomendations based on score
-        suggestions = suggestions.sort_values(
-            "score", ascending=False
-        ).reset_index()
-
-        # keep only papers published within a given year
-        if self.since:
-            suggestions = suggestions.loc[suggestions.year >= self.since]
-            suggestions = suggestions.reset_index()
-
+        # collate and print suggestions
+        suggestions = self._collate_suggestions(points)
         print(to_table(suggestions[:N]))
 
 
