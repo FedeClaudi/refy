@@ -9,6 +9,7 @@ from referee.settings import (
 )
 from referee.utils import from_json
 
+
 # --------------------------------- load data -------------------------------- #
 
 
@@ -46,5 +47,10 @@ def load_database():
     # merge
     dbase = pd.concat([dbase, biorxiv_dbase], sort=True).reset_index()
     dbase["input"] = False  # differentiate from user input
+
+    # clean up years column
+    years = [int(p.year) if p.year else 0 for i, p in dbase.iterrows()]
+    dbase["year"] = years
+
     logger.debug(f"Loaded database with {len(dbase)} entries")
     return dbase

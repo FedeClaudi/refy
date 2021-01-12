@@ -50,7 +50,7 @@ def to_table(papers):
 
     # fit in a panel
     return Panel(
-        table, expand=True, border_style=f"{orange}", padding=(0, 2, 1, 2)
+        table, expand=False, border_style=f"{orange}", padding=(0, 2, 1, 2)
     )
 
 

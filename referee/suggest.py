@@ -14,7 +14,7 @@ from referee.settings import example_path
 class suggest:
     suggestions_per_paper = 100  # for each paper find N suggestions
 
-    def __init__(self, user_papers, N=20):
+    def __init__(self, user_papers, N=20, since=None):
         """
             Suggest new relevant papers based on the user's
             library.
@@ -22,7 +22,11 @@ class suggest:
             Arguments:
                 user_papers: str, path. Path to a .bib file with user's papers info
                 N: int. Number of papers to suggest
+                since: int or None. If an int is passed it must be a year,
+                    only papers more recent that the given year are kept for recomendation
         """
+        self.since = since
+
         with suggest_progress as progress:
             self.progress = progress
             self.n_completed = -1
@@ -184,8 +188,13 @@ class suggest:
             "score", ascending=False
         ).reset_index()
 
+        # keep only papers published within a given year
+        if self.since:
+            suggestions = suggestions.loc[suggestions.year >= self.since]
+            suggestions = suggestions.reset_index()
+
         print(to_table(suggestions[:N]))
 
 
 if __name__ == "__main__":
-    suggest(example_path, N=100)
+    suggest(example_path, N=100, since=2018)
