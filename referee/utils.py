@@ -6,8 +6,6 @@ from rich.panel import Panel
 
 from myterial import orange, salmon
 
-from referee.progress import http_retrieve_progress
-
 # ------------------------------- print papers ------------------------------- #
 
 
@@ -67,13 +65,13 @@ def isin(l1, l2):
 
 # --------------------------------- internet --------------------------------- #
 def check_internet_connection(
-    url="http://www.google.com/", timeout=5, raise_error=True
+    url="http://www.google.com/", timeout=2, raise_error=True
 ):
     """Check that there is an internet connection
     url : str
         url to use for testing (Default value = 'http://www.google.com/')
     timeout : int
-        timeout to wait for [in seconds] (Default value = 5).
+        timeout to wait for [in seconds] (Default value = 2).
     raise_error : bool
         if false, warning but no error.
     """
@@ -126,40 +124,6 @@ def request(url):
     """
     response = _request(url, stream=False)
     return response.json()
-
-
-@raise_on_no_connection
-def retrieve_over_http(url, output_file_path):
-    """Download file from remote location, with progress bar.
-    Parameters
-    ----------
-    url : str
-        Remote URL.
-    output_file_path : str or Path
-        Full file destination for download.
-    """
-    CHUNK_SIZE = 4096
-    response = _request(url, stream=True,)
-
-    try:
-        with http_retrieve_progress as progress:
-            task_id = progress.add_task(
-                "download",
-                start=True,
-                total=int(response.headers.get("content-length", 0)),
-                filename=output_file_path.name,
-            )
-
-            with open(output_file_path, "wb") as fout:
-                for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
-                    fout.write(chunk)
-                    progress.update(task_id, advance=len(chunk), refresh=True)
-
-    except requests.exceptions.ConnectionError:
-        output_file_path.unlink()
-        raise requests.exceptions.ConnectionError(
-            f"Could not download file from {url}"
-        )
 
 
 # --------------------------------- File I/O --------------------------------- #

@@ -8,8 +8,6 @@ sys.path.append("./")
 from referee.utils import (
     request,
     to_json,
-    raise_on_no_connection,
-    retrieve_over_http,
 )
 from referee.settings import (
     fields_of_study,
@@ -17,9 +15,9 @@ from referee.settings import (
     biorxiv_end_date,
     biorxiv_abstracts_path,
     biorxiv_database_path,
-    remote_url_base,
 )
 from referee.progress import progress
+from progress.utils import raise_on_no_connection
 
 """
     Code to download papers metadata from biorxiv's API:
@@ -27,26 +25,6 @@ from referee.progress import progress
     and integrate it into referee's database
 
 """
-
-# -------------------------- download biorxiv dbase -------------------------- #
-@raise_on_no_connection
-def download():
-    """Download and extract pre-processed database data from remote url."""
-    print("Download database data")
-
-    # get urls
-    database_url = remote_url_base + "biorxiv_database.h5"
-    abstracts_url = remote_url_base + "biorxiv_abstracts.json"
-
-    data = {
-        "database": (database_url, biorxiv_database_path),
-        "abstracts": (abstracts_url, biorxiv_abstracts_path),
-    }
-
-    # download and extract
-    for name, (url, path) in data.items():
-        logger.debug(f"Downloading and extracting: {name}")
-        retrieve_over_http(url, path)
 
 
 # ---------------------------- make biorxiv dbase ---------------------------- #

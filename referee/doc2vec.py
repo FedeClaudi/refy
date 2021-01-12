@@ -6,22 +6,16 @@ from gensim.parsing.preprocessing import (
     strip_multiple_whitespaces,
     strip_punctuation,
 )
+import logging
 from loguru import logger
 import sys
+import multiprocessing
 
 sys.path.append("./")
 
-from referee.settings import base_dir, d2v_model_path, remote_url_base
+from referee.settings import base_dir, d2v_model_path
 from referee.database import load_abstracts
 from referee.progress import progress
-from referee.utils import (
-    raise_on_no_connection,
-    retrieve_over_http,
-)
-import multiprocessing
-
-# for gensim logging
-import logging
 
 
 class D2V:
@@ -81,27 +75,6 @@ def load_model():
     logger.debug("Loading pre-trained doc2vec model")
 
     return Doc2Vec.load(str(d2v_model_path))
-
-
-@raise_on_no_connection
-def download():
-    """
-        Downloads a pre-trained d2v model from the remote url
-    """
-    logger.debug("Downloading trained d2v model from web")
-
-    data = {
-        "model": (remote_url_base + "d2v_model.model", d2v_model_path),
-        "docvecs": (
-            remote_url_base + "d2v_model.model.docvecs.vectors_docs.npy",
-            d2v_model_path.parent / "d2v_model.model.docvecs.vectors_docs.npy",
-        ),
-    }
-
-    # download and extract
-    for name, (url, path) in data.items():
-        logger.debug(f"Downloading and extracting: {name}")
-        retrieve_over_http(url, path)
 
 
 # --------------------------------- training --------------------------------- #

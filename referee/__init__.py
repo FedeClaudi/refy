@@ -6,20 +6,13 @@ from referee.suggest import suggest
 from referee.settings import (
     DEBUG,
     base_dir,
-    database_path,
-    d2v_model_path,
-    example_path,
-    remote_url_base,
-    biorxiv_abstracts_path,
 )
-from referee import doc2vec
-from referee.utils import retrieve_over_http
-
-import referee.database_preprocessing as preprocessing
-import referee.database_biorxiv as biorxiv
+from referee import download
+from referee.utils import check_internet_connection
 
 
-# logging settings
+# ----------------------------- logging settings ----------------------------- #
+
 from loguru import logger
 import sys
 
@@ -34,19 +27,6 @@ logger.add(str(base_dir / "log.log"), level="DEBUG")
 
 
 # ------------------------------- download data ------------------------------ #
-
-# download database
-if not database_path.exists():
-    preprocessing.download()
-
-# download d2v model
-if not d2v_model_path.exists():
-    doc2vec.download()
-
-# download example library
-if not example_path.exists():
-    retrieve_over_http(remote_url_base + "example_library.bib", example_path)
-
-# download biorxiv
-# if not biorxiv_abstracts_path.exists():
-#     biorxiv.download()
+# try to download all missing files, if htere is an internet connection
+if check_internet_connection():
+    download.download_all()

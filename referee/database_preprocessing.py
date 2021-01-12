@@ -18,41 +18,14 @@ from referee.settings import (
     keywords,
     database_path,
     abstracts_path,
-    remote_url_base,
 )
 from referee.utils import (
     isin,
     to_json,
     from_json,
-    raise_on_no_connection,
-    retrieve_over_http,
 )
 
 ABSTRACTS = {}  # store all abstracts before saving
-
-# ----------------------------- download database ---------------------------- #
-
-
-@raise_on_no_connection
-def download():
-    """Download and extract pre-processed database data from remote url."""
-    print("Download database data")
-
-    # get urls
-    database_url = remote_url_base + "database.h5"
-    abstracts_url = remote_url_base + "abstracts.json"
-
-    data = {
-        "database": (database_url, database_path),
-        "abstracts": (abstracts_url, abstracts_path),
-    }
-
-    # download and extract
-    for name, (url, path) in data.items():
-        logger.debug(f"Downloading and extracting: {name}")
-
-        retrieve_over_http(url, path)
-
 
 # ---------------------------- preprocess database --------------------------- #
 
