@@ -17,7 +17,7 @@ from referee.settings import (
     biorxiv_database_path,
 )
 from referee.progress import progress
-from progress.utils import raise_on_no_connection
+from referee.utils import raise_on_no_connection
 
 """
     Code to download papers metadata from biorxiv's API:
