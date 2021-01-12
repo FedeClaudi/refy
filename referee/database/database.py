@@ -8,8 +8,8 @@ from referee.settings import (
     biorxiv_database_path,
     test_abstracts_path,
     test_database_path,
-    TEST_MODE,
 )
+from referee import settings
 from referee.utils import from_json
 
 
@@ -23,7 +23,7 @@ def load_abstracts():
         Returns:
             abstracts: dict with all abstracts
     """
-    if not TEST_MODE:  # pragma: no cover
+    if not settings.TEST_MODE:  # pragma: no cover
         abstracts = from_json(abstracts_path)
         abstracts.update(from_json(biorxiv_abstracts_path))
     else:
@@ -42,7 +42,7 @@ def load_database():
         Returns:
             database: DataFrame with search database metadata
     """
-    if not TEST_MODE:  # pragma: no cover
+    if not settings.TEST_MODE:  # pragma: no cover
         # download semanthic scholar database
         dbase = pd.read_hdf(database_path, key="hdf")
         dbase["source"] = "semanthic scholar"

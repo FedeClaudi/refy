@@ -108,5 +108,4 @@ http_retrieve_progress = Progress(
     TransferSpeedColumn(),
     "• ETA:",
     TimeRemainingColumn(),
-    transient=False,
 )

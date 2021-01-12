@@ -14,7 +14,7 @@ from referee.settings import example_path
 class suggest:
     suggestions_per_paper = 100  # for each paper find N suggestions
 
-    def __init__(self, user_papers, N=20, since=None, savepath=None):
+    def __init__(self, user_papers, N=20, since=None, to=None, savepath=None):
         """
             Suggest new relevant papers based on the user's
             library.
@@ -23,12 +23,15 @@ class suggest:
                 user_papers: str, path. Path to a .bib file with user's papers info
                 N: int. Number of papers to suggest
                 since: int or None. If an int is passed it must be a year,
-                    only papers more recent that the given year are kept for recomendation
+                    only papers more recent than the given year are kept for recomendation
+                to: int or None. If an int is passed it must be a year,
+                    only papers older than that are kept for recomendation
                 savepath: str, Path. Path pointing to a .csv file where the recomendations
                     will be saved
         """
         self.since = since
-        self.savepath
+        self.to = to
+        self.savepath = savepath
 
         with suggest_progress as progress:
             self.progress = progress
@@ -146,14 +149,15 @@ class suggest:
         ]
 
         # sort recomendations based on score
-        suggestions = suggestions.sort_values(
-            "score", ascending=False
-        ).reset_index()
+        suggestions = suggestions.sort_values("score", ascending=False)
 
-        # keep only papers published within a given year
+        # keep only papers published within a given years range
         if self.since:
             suggestions = suggestions.loc[suggestions.year >= self.since]
-            suggestions = suggestions.reset_index()
+        if self.to:
+            suggestions = suggestions.loc[suggestions.year <= self.to]
+
+        suggestions = suggestions.reset_index(drop=True)
 
         return suggestions
 
@@ -167,6 +171,9 @@ class suggest:
 
             Arguments:
                 N: int, number of best papers to keep
+
+            Returns:
+                suggestions: pd.DataFrame with suggested papers sorted by score
         """
         logger.debug(f"Getting suggestions for {self.n_user_papers} papers")
 
@@ -187,19 +194,25 @@ class suggest:
                 user_paper.title, user_paper.abstract
             )
 
-            for suggested, points in paper_suggestions.items():
+            for suggested, pts in paper_suggestions.items():
                 if suggested in points.keys():
-                    points[suggested] += points
+                    points[suggested] += pts
                 else:
-                    points[suggested] = points
+                    points[suggested] = pts
 
             self.progress.update(select_task, completed=n)
         self.progress.remove_task(select_task)
         self.progress.remove_task(self.task_id)
 
         # collate and print suggestions
-        suggestions = self._collate_suggestions(points)
-        print(to_table(suggestions[:N]))
+        self.suggestions = self._collate_suggestions(points)[:N]
+        print(to_table(self.suggestions))
+
+        # save to file
+        if self.savepath:
+            self.suggestions.to_csv(self.savepath)
+
+        return self.suggestions
 
 
 if __name__ == "__main__":

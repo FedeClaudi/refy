@@ -14,6 +14,8 @@ from referee.settings import (
     d2v_model_path,
     biorxiv_abstracts_path,
     biorxiv_database_path,
+    test_database_path,
+    test_abstracts_path,
 )
 
 from referee.utils import _request
@@ -61,6 +63,8 @@ def download_all():
     # get urls
     database_url = remote_url_base + "database.h5"
     abstracts_url = remote_url_base + "abstracts.json"
+    test_database_url = remote_url_base + "test_database.h5"
+    test_abstracts_url = remote_url_base + "test_abstracts.json"
     biorxiv_database_url = remote_url_base + "biorxiv_database.h5"
     biorxiv_abstracts_url = remote_url_base + "biorxiv_abstracts.json"
     d2v_model = remote_url_base + "d2v_model.model"
@@ -74,6 +78,8 @@ def download_all():
     data = [
         (database_url, database_path),
         (abstracts_url, abstracts_path),
+        (test_database_url, test_database_path),
+        (test_abstracts_url, test_abstracts_path),
         (biorxiv_database_url, biorxiv_database_path),
         (biorxiv_abstracts_url, biorxiv_abstracts_path),
         (d2v_model, d2v_model_path),

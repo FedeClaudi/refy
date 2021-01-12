@@ -15,7 +15,7 @@ def make():
 
     # select
     db = db.sample(N)
-    abstracts = {paper.ID: abstracts[paper.ID] for i, paper in db.iterrows()}
+    abstracts = {paper.id: abstracts[paper.id] for i, paper in db.iterrows()}
 
     # save
     to_json(abstracts, base_dir / "test_abstracts.json")

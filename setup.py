@@ -15,7 +15,17 @@ requirements = [
     "myterial",
     "rich",
     "bibtexparser",
+    "cython",  # should make gensim faster?
 ]
+
+"""
+    Installation requires `tables` which on some OSs complains because it can't find HDF5.
+    In that case:
+    ```
+        conda install hdf5
+        conda install pytables
+    ```
+"""
 
 setup(
     name="referee",
