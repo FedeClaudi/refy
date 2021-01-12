@@ -4,7 +4,7 @@ from rich.table import Table
 from rich import print
 from rich.panel import Panel
 
-from myterial import salmon, orange
+from myterial import salmon, orange, amber
 
 # ------------------------------- print papers ------------------------------- #
 
@@ -28,24 +28,24 @@ def to_table(papers):
         title_style=f"bold {salmon}",
         caption=f"{len(papers)} papers, recommended by referee :ok_hand:",
         caption_style="dim",
-        leading=5,
+        padding=(1, 1),
     )
     table.add_column("#")
     table.add_column(":thumbs_up: score", style="dim", justify="center")
     table.add_column("year", style="dim", justify="center")
     table.add_column("title", style=f"bold {orange}", min_width=40)
     table.add_column(
-        "DOI", style="dim",
+        "DOI/url", style="dim",
     )
 
     # add papers to table
     for i, paper in papers.iterrows():
         table.add_row(
-            f"[dim]" + str(i + 1),
-            f"[dim]" + str(round(paper["score"], 3)),
-            f"[dim]" + str(paper.year),
+            str(i + 1),
+            "[dim]" + str(round(paper["score"], 3)),
+            f"[dim {amber}]" + str(paper.year),
             paper.title,
-            f"[dim]https://doi.org/{paper.doi}",
+            f"[dim]https://doi.org/{paper.doi}" if paper.doi else paper.url,
         )
 
     # fit in a panel
