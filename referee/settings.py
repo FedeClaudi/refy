@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-DEBUG = True  # set to True if you wish to see debug logs
 TEST_MODE = False  # gets set to True when running tests
 
 # ----------------------------------- paths ---------------------------------- #

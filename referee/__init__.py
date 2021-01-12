@@ -2,20 +2,13 @@ from pyinspect import install_traceback
 
 install_traceback(hide_locals=True)
 
-from referee.suggest import suggest
-from referee.settings import (
-    DEBUG,
-    base_dir,
-)
-from referee import download
-from referee.utils import check_internet_connection
-
 
 # ----------------------------- logging settings ----------------------------- #
 
 from loguru import logger
 import sys
 
+DEBUG = False
 if not DEBUG:
     # show only log messages from warning up
     logger.remove()
@@ -25,6 +18,11 @@ if not DEBUG:
 # add another logger saving to file
 logger.add(str(base_dir / "log.log"), level="DEBUG")
 
+
+from referee import download
+from referee.utils import check_internet_connection
+from referee.suggest import suggest
+from referee.settings import base_dir
 
 # ------------------------------- download data ------------------------------ #
 # try to download all missing files, if htere is an internet connection

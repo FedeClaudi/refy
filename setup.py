@@ -6,6 +6,7 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 requirements = [
+    "pyinspect",
     "gensim",
     "nltk",
     "langdetect",
@@ -16,6 +17,7 @@ requirements = [
     "rich",
     "bibtexparser",
     "cython",  # should make gensim faster?
+    "typer",
 ]
 
 """
@@ -47,7 +49,7 @@ setup(
     ],
     install_requires=requirements,
     extras_require={},
-    python_requires=">=3.6",
+    python_requires="<3.9",
     packages=find_namespace_packages(exclude=("tests, examples")),
     entry_points={"console_scripts": []},
     include_package_data=True,

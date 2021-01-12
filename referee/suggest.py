@@ -1,6 +1,7 @@
 from loguru import logger
 from rich import print
 import sys
+from pathlib import Path
 
 sys.path.append("./")
 from referee.input import load_user_input
@@ -31,7 +32,7 @@ class suggest:
         """
         self.since = since
         self.to = to
-        self.savepath = savepath
+        self.savepath = Path(savepath)
 
         with suggest_progress as progress:
             self.progress = progress
