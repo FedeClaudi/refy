@@ -32,7 +32,10 @@ class suggest:
         """
         self.since = since
         self.to = to
-        self.savepath = Path(savepath)
+        if savepath:
+            self.savepath = Path(savepath)
+        else:
+            self.savepath = savepath
 
         with suggest_progress as progress:
             self.progress = progress

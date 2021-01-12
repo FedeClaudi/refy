@@ -1,5 +1,7 @@
 import typer
+import sys
 
+sys.path.append("./")
 import referee
 
 app = typer.Typer()
