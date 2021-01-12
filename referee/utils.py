@@ -32,6 +32,7 @@ def to_table(papers):
     )
     table.add_column("#")
     table.add_column(":thumbs_up: score", style="dim", justify="center")
+    table.add_column("year", style="dim", justify="center")
     table.add_column("title", style=f"bold {orange}", min_width=40)
     table.add_column(
         "DOI", style="dim",
@@ -42,6 +43,7 @@ def to_table(papers):
         table.add_row(
             f"[dim]" + str(i + 1),
             f"[dim]" + str(round(paper["score"], 3)),
+            f"[dim]" + str(paper.year),
             paper.title,
             f"[dim]https://doi.org/{paper.doi}",
         )
