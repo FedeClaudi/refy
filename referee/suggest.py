@@ -79,8 +79,6 @@ class suggest:
         # load database and abstracts
         self._progress("Loading database abstracts",)
         self.abstracts = load_abstracts()
-        self.abstract2id = {ab: ID for ID, ab in self.abstracts.items()}
-        self.abstracts_l = list(self.abstracts.values())
 
         self._progress("Loading database papers")
         self.database = load_database()
@@ -107,13 +105,10 @@ class suggest:
                 suggestions: np.ndarray. Array of paper titles with suggestions for input paper
         """
         # find best match with d2v
-        best_idxs = self.d2v.predict(user_paper_abstract, N=200)
-
-        # get the IDs of matches
-        IDs = [self.abstract2id[self.abstracts_l[idx]] for idx in best_idxs]
+        best_IDs = self.d2v.predict(user_paper_abstract, N=200)
 
         # get selected papers
-        selected = self.database.loc[self.database["id"].isin(IDs)]
+        selected = self.database.loc[self.database["id"].isin(best_IDs)]
 
         if selected.empty:
             logger.debug(

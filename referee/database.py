@@ -34,9 +34,17 @@ def load_database():
         Returns:
             database: DataFrame with search database metadata
     """
+    # download semanthic scholar database
     dbase = pd.read_hdf(database_path, key="hdf")
-    dbase.append(pd.read_hdf(biorxiv_database_path, key="hdf"))
+    dbase["source"] = "semanthic scholar"
 
+    # download biorxiv database
+    biorxiv_dbase = pd.read_hdf(biorxiv_database_path, key="hdf")
+    del biorxiv_dbase["category"]
+    biorxiv_dbase["source"] = "biorxiv"
+
+    # merge
+    dbase = pd.concat([dbase, biorxiv_dbase], sort=True).reset_index()
     dbase["input"] = False  # differentiate from user input
     logger.debug(f"Loaded database with {len(dbase)} entries")
     return dbase

@@ -152,8 +152,8 @@ def train_doc2vec_model(n_epochs=50, vec_size=500, alpha=0.025):
         )
 
     # save trained
-    model.save(str(base_dir / "d2v.model"))
-    logger.debug(f"Model Saved at: {base_dir/'d2v.model'}")
+    model.save(str(base_dir / "d2v_model.model"))
+    logger.debug(f"Model Saved at: {base_dir/'d2v_model.model'}")
 
 
 if __name__ == "__main__":

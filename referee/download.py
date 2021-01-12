@@ -51,8 +51,13 @@ def retrieve_over_http(url, response, output_file_path, task_id):
 
 def download_all():
     """
-        Download all data used by referee, in parallel.
+        Download all data used by referee, in parallel for speed.
+        It checks if all files used by referee are present and if not
+        it downloads them from GIN: 
+            https://gin.g-node.org/FedeClaudi/Referee/src/master/
     """
+    logger.debug("Checking that all files are present")
+
     # get urls
     database_url = remote_url_base + "database.h5"
     abstracts_url = remote_url_base + "abstracts.json"
@@ -60,6 +65,7 @@ def download_all():
     biorxiv_abstracts_url = remote_url_base + "biorxiv_abstracts.json"
     d2v_model = remote_url_base + "d2v_model.model"
     d2v_vecs = remote_url_base + "d2v_model.model.docvecs.vectors_docs.npy"
+    d2v_wv = remote_url_base + "d2v_model.model.wv.vectors.npy"
     example_library = remote_url_base + "example_library.bib"
 
     # organize urls and paths
@@ -73,6 +79,7 @@ def download_all():
             d2v_vecs,
             d2v_model_path.parent / "d2v_model.model.docvecs.vectors_docs.npy",
         ),
+        (d2v_wv, d2v_model_path.parent / "d2v_model.model.wv.vectors.npy"),
         (example_library, example_path),
     ]
 
@@ -81,12 +88,13 @@ def download_all():
     with http_retrieve_progress as progress:
         with ThreadPoolExecutor(max_workers=n_cpus) as pool:
             for (url, output_file_path) in data:
+
                 # check if file was downloaded already
                 if output_file_path.exists():
                     logger.debug(
                         f"Not downloading {output_file_path.name} because it exists already"
                     )
-                    return
+                    continue
 
                 # send a request and start a progress bar
                 response = _request(url, stream=True,)

@@ -11,7 +11,7 @@ def load_from_bib(fpath):
     """
     parser = BibTexParser(common_strings=True)
 
-    with open(fpath) as bibtex_file:
+    with open(fpath, encoding="utf-8") as bibtex_file:
         bib_database = parser.parse_file(bibtex_file)
 
     return bib_database.entries_dict
@@ -27,8 +27,8 @@ def load_user_input(fpath):
             fpath: str, Path. Path to a .bib file
     """
 
-    raise NotImplementedError(
-        "See if you can match entries with the database to get full abstracts"
+    logger.warning(
+        "TODO: See if you can match entries with the database to get full abstracts"
     )
 
     # load from file
