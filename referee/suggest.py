@@ -12,6 +12,8 @@ from referee.settings import example_path
 
 
 class suggest:
+    suggestions_per_paper = 100  # for each paper find N suggestions
+
     def __init__(self, user_papers, N=20):
         """
             Suggest new relevant papers based on the user's
@@ -25,12 +27,13 @@ class suggest:
             self.progress = progress
             self.n_completed = -1
             self.task_id = self.progress.add_task(
-                "Suggesting papers..", start=True, total=4, current_task="",
+                "Suggesting papers..", start=True, total=5, current_task="",
             )
             # load data
             self.load_data(user_papers)
 
             # load d2v model
+            self._progress("Loading Doc2Vec model")
             self.d2v = d2v.D2V()
 
             # get suggestions
@@ -102,10 +105,14 @@ class suggest:
                 user_paper_abstract: str. Abstract of input user paper
 
             Returns:
-                suggestions: np.ndarray. Array of paper titles with suggestions for input paper
+                suggestions: dict. Dictionary of title:value where value 
+                    is self.suggestions_per_paper for the best match paper and 
+                    1 for the lowest match
         """
         # find best match with d2v
-        best_IDs = self.d2v.predict(user_paper_abstract, N=200)
+        best_IDs = self.d2v.predict(
+            user_paper_abstract, N=self.suggestions_per_paper
+        )
 
         # get selected papers
         selected = self.database.loc[self.database["id"].isin(best_IDs)]
@@ -116,7 +123,10 @@ class suggest:
                 f"with abstract:{self.paper_abstract(user_paper_title)}"
             )
 
-        return selected.title.values
+        return {
+            t: self.suggestions_per_paper - n
+            for n, t in enumerate(selected.title.values)
+        }
 
     def get_suggestions(self, N=20):
         """
@@ -143,34 +153,35 @@ class suggest:
         # find best matches for each paper
         counts = {}
         for n, (idx, user_paper) in enumerate(self.user_papers.iterrows()):
-            sugg = self.suggest_for_paper(
+            # keep track of recomendations across all user papers
+            paper_suggestions = self.suggest_for_paper(
                 user_paper.title, user_paper.abstract
             )
-            for sugg in self.suggest_for_paper(
-                user_paper.title, user_paper.abstract
-            ):
-                if sugg in counts.keys():
-                    counts[sugg] += 1
+
+            for suggested, points in paper_suggestions.items():
+                if suggested in counts.keys():
+                    counts[suggested] += points
                 else:
-                    counts[sugg] = 1
+                    counts[suggested] = points
 
             self.progress.update(select_task, completed=n)
-
         self.progress.remove_task(select_task)
         self.progress.remove_task(self.task_id)
 
-        # sort by how many times each paper has been reccomended
+        # collate recomendations
         suggestions = self.database.loc[
             self.database.title.isin(counts.keys())
         ].drop_duplicates(subset="title")
-        suggestions["count"] = [
-            counts[title] for title in suggestions.title.values
+
+        # Get each paper's score
+        max_score = self.suggestions_per_paper * self.n_user_papers
+        suggestions["score"] = [
+            counts[title] / max_score for title in suggestions.title.values
         ]
-        suggestions = suggestions.loc[
-            suggestions["count"] > 1
-        ]  # remove to speed up next step
+
+        # sort recomendations based on score
         suggestions = suggestions.sort_values(
-            "count", ascending=False
+            "score", ascending=False
         ).reset_index()
 
         print(to_table(suggestions[:N]))

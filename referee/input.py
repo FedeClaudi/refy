@@ -27,8 +27,8 @@ def load_user_input(fpath):
             fpath: str, Path. Path to a .bib file
     """
 
-    logger.warning(
-        "TODO: See if you can match entries with the database to get full abstracts"
+    logger.debug(
+        "[red]TODO: See if you can match entries with the database to get full abstracts"
     )
 
     # load from file
@@ -58,7 +58,5 @@ def load_user_input(fpath):
 
     # log and return
     logger.debug(f"{len(data)}/{len(has_abs)} user papers have abstracts")
-    print(
-        f"{len(data)}/{len(has_abs)} input papers have abstracts, using {len(data)} papers for search."
-    )
+
     return data
