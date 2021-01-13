@@ -2,7 +2,7 @@ from pyinspect import install_traceback
 
 install_traceback(hide_locals=True)
 
-from refy.suggest import suggest
+from refy.suggest import suggest, suggest_one
 from refy.settings import (
     DEBUG,
     base_dir,

@@ -18,7 +18,7 @@ from refy.settings import (
     test_abstracts_path,
 )
 
-from refy.utils import _request
+from refy.utils import _request, check_internet_connection
 from refy.progress import http_retrieve_progress
 
 
@@ -81,17 +81,6 @@ def retrieve_over_http(url, response, output_file_path, task_id):
     logger.debug(f"Done downloading {output_file_path.name}")
 
 
-def check_all():
-    """
-        Checks that all necessary files are present
-    """
-    for url, filepath in data:
-        if not filepath.exists():
-            return False, filepath
-        else:
-            return True, None
-
-
 def download_all():
     """
         Download all data used by refy, in parallel for speed.
@@ -133,6 +122,33 @@ def download_all():
                     task_id,
                 )
     logger.debug("Downloaded all files")
+
+
+def check_all():
+    """
+        Checks that all necessary files are present
+    """
+    for url, filepath in data:
+        if not filepath.exists():
+            return False, filepath
+        else:
+            return True, None
+
+
+def check_files():
+    """
+            Checks that all necessary files are present and tries to download them if not
+        """
+    # download all missing if connection
+    if check_internet_connection():
+        download_all()
+
+    # check all files are there
+    passed, missing = check_all()
+    if not passed:
+        raise ValueError(
+            f"At least one necessary file missing: {missing.name}. Connect to the internet to download"
+        )
 
 
 if __name__ == "__main__":

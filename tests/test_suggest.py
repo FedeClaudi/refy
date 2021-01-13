@@ -1,6 +1,18 @@
-from refy import suggest
+from refy import suggest, suggest_one
 from refy.settings import example_path, base_dir
 import pandas as pd
+
+
+def test_suggst_one():
+    suggestions = suggest_one("locomotion control", N=20)
+
+    assert isinstance(suggestions, pd.DataFrame), "returned wrong class"
+    assert len(suggestions) == 20, "wrong number of suggestions returned"
+
+    suggestions = suggest_one("locomotion control", N=20, since=2015, to=2018)
+
+    assert suggestions.year.min() == 2015
+    assert suggestions.year.max() == 2018
 
 
 def test_suggest_save():

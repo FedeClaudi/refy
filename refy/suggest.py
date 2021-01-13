@@ -2,15 +2,63 @@ from loguru import logger
 from rich import print
 import sys
 from pathlib import Path
+from myterial import orange
 
 sys.path.append("./")
 from refy.input import load_user_input
-from refy.database import load_abstracts, load_database
+from refy.database import load_database
 from refy.progress import suggest_progress
-from refy.utils import to_table, check_internet_connection
+from refy.utils import to_table
 from refy import doc2vec as d2v
-from refy.settings import example_path
 from refy import download
+
+
+def suggest_one(input_string, N=20, since=None, to=None, savepath=None):
+    """
+        Finds recomendations based on a single input string (with keywords,
+        or a paper abstract or whatever) instead of an input .bib file
+
+        Arguments:
+            input_stirng: str. String to match against database
+            N: int. Number of papers to suggest
+            since: int or None. If an int is passed it must be a year,
+                only papers more recent than the given year are kept for recomendation
+            to: int or None. If an int is passed it must be a year,
+                only papers older than that are kept for recomendation
+            savepath: str, Path. Path pointing to a .csv file where the recomendations
+                will be saved
+
+        Returns:
+            suggestions: pd.DataFrame of N recomended papers
+    """
+    download.check_files()
+
+    # load database and abstracts
+    database = load_database()
+
+    # load model
+    model = d2v.D2V()
+
+    # find recomendations
+    best_IDs = model.predict(input_string, N=N)
+
+    # get selected papers
+    suggestions = database.loc[database["id"].isin(best_IDs)].reset_index()
+    suggestions["score"] = None
+
+    # print
+    print(
+        to_table(
+            suggestions,
+            title=f'Suggestions for input string: [bold {orange}]""',
+        )
+    )
+
+    # save to file
+    if savepath:
+        suggestions.to_csv(savepath)
+
+    return suggestions
 
 
 class suggest:
@@ -31,7 +79,7 @@ class suggest:
                 savepath: str, Path. Path pointing to a .csv file where the recomendations
                     will be saved
         """
-        self.check_files()
+        download.check_files()
 
         self.since = since
         self.to = to
@@ -44,7 +92,7 @@ class suggest:
             self.progress = progress
             self.n_completed = -1
             self.task_id = self.progress.add_task(
-                "Suggesting papers..", start=True, total=5, current_task="",
+                "Suggesting papers..", start=True, total=4, current_task="",
             )
             # load data
             self.load_data(user_papers)
@@ -68,21 +116,6 @@ class suggest:
     def n_user_papers(self):
         return len(self.user_papers)
 
-    def check_files(self):
-        """
-            Checks that all necessary files are present and tries to download them if not
-        """
-        # download all missing if connection
-        if check_internet_connection():
-            download.download_all()
-
-        # check all files are there
-        passed, missing = download.check_all()
-        if not passed:
-            raise ValueError(
-                f"At least one necessary file missing: {missing.name}. Connect to the internet to download"
-            )
-
     def _progress(self, task_name):
         """
             Update progress bar
@@ -99,10 +132,7 @@ class suggest:
             Arguments:
                 user_papers: str, path. Path to a .bib file with user's papers info
         """
-        # load database and abstracts
-        self._progress("Loading database abstracts",)
-        self.abstracts = load_abstracts()
-
+        # load database
         self._progress("Loading database papers")
         self.database = load_database()
 
@@ -238,4 +268,6 @@ class suggest:
 
 
 if __name__ == "__main__":
-    suggest(example_path, N=100, since=2018)
+    # from refy.settings import example_path
+    # suggest(example_path, N=100, since=2018)
+    suggest_one("locomotion control")

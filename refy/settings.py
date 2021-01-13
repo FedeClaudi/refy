@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-DEBUG = False
+DEBUG = True
 TEST_MODE = False  # gets set to True when running tests
 
 # ----------------------------------- paths ---------------------------------- #

@@ -9,12 +9,13 @@ from myterial import salmon, orange, amber
 # ------------------------------- print papers ------------------------------- #
 
 
-def to_table(papers):
+def to_table(papers, title=None):
     """
         prints a dataframe with papers metadata in a pretty format
 
         Arguments:
             papers: pd.DataFrame
+            title: str. Optional input to replace default title
 
     """
     # create table
@@ -24,7 +25,7 @@ def to_table(papers):
         show_lines=True,
         expand=False,
         box=None,
-        title="Recomended papers",
+        title=title or "Recomended papers",
         title_style=f"bold {salmon}",
         caption=f"{len(papers)} papers, recommended by refy :ok_hand:",
         caption_style="dim",
@@ -40,9 +41,14 @@ def to_table(papers):
 
     # add papers to table
     for i, paper in papers.iterrows():
+        if paper.score:
+            score = "[dim]" + str(round(paper["score"], 3))
+        else:
+            score = ""
+
         table.add_row(
             str(i + 1),
-            "[dim]" + str(round(paper["score"], 3)),
+            score,
             f"[dim {amber}]" + str(paper.year),
             paper.title,
             f"[dim]https://doi.org/{paper.doi}" if paper.doi else paper.url,
@@ -52,9 +58,6 @@ def to_table(papers):
     return Panel(
         table, expand=False, border_style=f"{orange}", padding=(0, 2, 1, 2)
     )
-
-
-# ----------------------------------- misc ----------------------------------- #
 
 
 def isin(l1, l2):
