@@ -36,7 +36,7 @@ def to_table(papers, title=None):
         padding=(0, 1),
     )
     table.add_column("#")
-    table.add_column(":thumbs_up: score", style="dim", justify="center")
+    table.add_column(":thumbs_up: score", style="dim", justify="left")
     table.add_column("year", style="dim", justify="center")
     table.add_column("title", style=f"bold {orange}", min_width=40)
     table.add_column(

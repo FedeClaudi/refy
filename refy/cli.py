@@ -92,6 +92,14 @@ def query(
 
 
 @app.command()
+def example():
+    """
+        Run refy on an example .bib file.
+    """
+    refy.suggest(refy.settings.example_path, N=10)
+
+
+@app.command()
 def update_database(
     folder: str = typer.Argument(
         ..., help="Path to folder with semantic scholar raw data"
