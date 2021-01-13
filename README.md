@@ -30,7 +30,7 @@ refy example
 which should print something like:
 
 <p align="center">
-<img src="imgs/example.png" width=800p style='margin:auto'></img>
+<img src="imgs/example.png" width=800px style='margin:auto'></img>
 </p>
 
 
@@ -39,7 +39,7 @@ which should print something like:
 ### Usage
 Usage provides a Command Line Interface (CLI) to expose it's functionality directly in your terminal:
 <p align="center">
-<img src="imgs/helptxt.png" width=800p style='margin:auto'></img>
+<img src="imgs/helptxt.png" width=800px style='margin:auto'></img>
 </p>
 
 >**Note:** the first time you use `refy` it will have to download several files (which you can see [here](https://gin.g-node.org/FedeClaudi/refy/src/master/)) with data it needs to work. This should only take a few minuts and it will require about 3GB of memory/
