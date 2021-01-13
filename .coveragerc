@@ -2,6 +2,7 @@
 omit = 
     refy/database/biorxiv.py
     refy/database/semantic_scholar.py
+    refy/cli.py
 
 [report]
 # Regexes for lines to exclude from consideration

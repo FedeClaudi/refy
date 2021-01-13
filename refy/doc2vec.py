@@ -113,8 +113,6 @@ def train_doc2vec_model(n_epochs=50, vec_size=500, alpha=0.025):
         See: https://radimrehurek.com/gensim/models/doc2vec.html
 
         Arguments:
-            model: Doc2Vec. Optional, if None a new model is created (which is very slow).
-                Passing a loaded model skips the generate_vocab steps which is slow.
             n_epochs: int. Numberof epochs for training
             vec_size: int. Dimensionality of the feature vectors
             alpha: float. The initial learning rate

@@ -23,7 +23,6 @@ from refy.utils import raise_on_no_connection
     Code to download papers metadata from biorxiv's API:
         https://api.biorxiv.org/
     and integrate it into refy's database
-
 """
 
 
