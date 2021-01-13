@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append("./")
+
 from refy.database import load_database, load_abstracts
 from refy import base_dir
 from refy.utils import to_json

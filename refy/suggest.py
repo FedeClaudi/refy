@@ -46,6 +46,12 @@ def suggest_one(input_string, N=20, since=None, to=None, savepath=None):
     suggestions = database.loc[database["id"].isin(best_IDs)].reset_index()
     suggestions["score"] = None
 
+    # select papers based on date of publication
+    if since:
+        suggestions = suggestions.loc[suggestions.year >= since]
+    if to:
+        suggestions = suggestions.loc[suggestions.year <= to]
+
     # print
     print(
         to_table(
@@ -105,10 +111,6 @@ class suggest:
             self.get_suggestions(N=N)
 
     @property
-    def n_abstracts(self):
-        return len(self.abstracts)
-
-    @property
     def n_papers(self):
         return len(self.database)
 
@@ -135,12 +137,6 @@ class suggest:
         # load database
         self._progress("Loading database papers")
         self.database = load_database()
-
-        if self.n_papers != self.n_abstracts:
-            raise ValueError(
-                "Error while loading data. Expected same number of papers and abstracts."
-                f"Instead {self.n_papers} papers and {self.n_abstracts} abstracts were found"
-            )
 
         # load user data
         self._progress("Loading user papers",)

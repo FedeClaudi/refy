@@ -38,6 +38,7 @@ example_library = remote_url_base + "example_library.bib"
 # organize urls and paths
 d2v_base = d2v_model_path.parent
 data = [
+    (example_library, example_path),
     (database_url, database_path),
     (abstracts_url, abstracts_path),
     (test_database_url, test_database_path),
@@ -48,7 +49,6 @@ data = [
     (d2v_vecs, d2v_base / "d2v_model.model.docvecs.vectors_docs.npy"),
     (d2v_wv, d2v_base / "d2v_model.model.wv.vectors.npy"),
     (d2v_sin, d2v_base / "d2v_model.model.trainables.syn1neg.npy"),
-    (example_library, example_path),
 ]
 
 

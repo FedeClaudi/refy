@@ -18,6 +18,10 @@ def to_table(papers, title=None):
             title: str. Optional input to replace default title
 
     """
+    if papers.empty:
+        print(f"[{orange}]Found no papers matching your query, sorry")
+        return
+
     # create table
     table = Table(
         show_header=True,
@@ -29,7 +33,7 @@ def to_table(papers, title=None):
         title_style=f"bold {salmon}",
         caption=f"{len(papers)} papers, recommended by refy :ok_hand:",
         caption_style="dim",
-        padding=(1, 1),
+        padding=(0, 1),
     )
     table.add_column("#")
     table.add_column(":thumbs_up: score", style="dim", justify="center")
