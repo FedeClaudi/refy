@@ -48,9 +48,9 @@ def suggest_one(input_string, N=20, since=None, to=None, savepath=None):
 
     # select papers based on date of publication
     if since:
-        suggestions = suggestions.loc[suggestions.year >= since]
+        suggestions = suggestions.loc[suggestions.year >= int(since)]
     if to:
-        suggestions = suggestions.loc[suggestions.year <= to]
+        suggestions = suggestions.loc[suggestions.year <= int(to)]
 
     # print
     print(
@@ -190,6 +190,13 @@ class suggest:
             self.database.title.isin(points.keys())
         ].drop_duplicates(subset="title")
 
+        # drop suggestions whose title is in the user papers
+        titles = suggestions.title.apply(lambda x: x.lower().replace(" ", ""))
+        user_titles = self.user_papers.title.apply(
+            lambda x: x.lower().replace(" ", "")
+        )
+        suggestions = suggestions.loc[~titles.isin(user_titles)]
+
         # Get each paper's score
         max_score = self.suggestions_per_paper * self.n_user_papers
         suggestions["score"] = [
@@ -201,9 +208,9 @@ class suggest:
 
         # keep only papers published within a given years range
         if self.since:
-            suggestions = suggestions.loc[suggestions.year >= self.since]
+            suggestions = suggestions.loc[suggestions.year >= int(self.since)]
         if self.to:
-            suggestions = suggestions.loc[suggestions.year <= self.to]
+            suggestions = suggestions.loc[suggestions.year <= int(self.to)]
 
         suggestions = suggestions.reset_index(drop=True)
 
@@ -264,6 +271,9 @@ class suggest:
 
 
 if __name__ == "__main__":
-    # from refy.settings import example_path
-    # suggest(example_path, N=100, since=2018)
-    suggest_one("locomotion control")
+    import refy
+
+    refy.set_logging("DEBUG")
+    suggest(refy.settings.example_path, N=100, since=2018)
+
+    # suggest_one("locomotion control")
