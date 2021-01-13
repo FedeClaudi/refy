@@ -5,24 +5,24 @@ import math
 
 sys.path.append("./")
 
-from referee.utils import (
+from refy.utils import (
     request,
     to_json,
 )
-from referee.settings import (
+from refy.settings import (
     fields_of_study,
     biorxiv_start_date,
     biorxiv_end_date,
     biorxiv_abstracts_path,
     biorxiv_database_path,
 )
-from referee.progress import progress
-from referee.utils import raise_on_no_connection
+from refy.progress import progress
+from refy.utils import raise_on_no_connection
 
 """
     Code to download papers metadata from biorxiv's API:
         https://api.biorxiv.org/
-    and integrate it into referee's database
+    and integrate it into refy's database
 
 """
 

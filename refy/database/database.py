@@ -1,7 +1,7 @@
 import pandas as pd
 from loguru import logger
 
-from referee.settings import (
+from refy.settings import (
     database_path,
     abstracts_path,
     biorxiv_abstracts_path,
@@ -9,8 +9,8 @@ from referee.settings import (
     test_abstracts_path,
     test_database_path,
 )
-from referee import settings
-from referee.utils import from_json
+from refy import settings
+from refy.utils import from_json
 
 
 # --------------------------------- load data -------------------------------- #

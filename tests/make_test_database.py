@@ -1,6 +1,6 @@
-from referee.database import load_database, load_abstracts
-from referee import base_dir
-from referee.utils import to_json
+from refy.database import load_database, load_abstracts
+from refy import base_dir
+from refy.utils import to_json
 
 
 def make():

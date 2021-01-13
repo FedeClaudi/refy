@@ -1,7 +1,7 @@
 [run]
 omit = 
-    referee/database/biorxiv.py
-    referee/database/semantic_scholar.py
+    refy/database/biorxiv.py
+    refy/database/semantic_scholar.py
 
 [report]
 # Regexes for lines to exclude from consideration

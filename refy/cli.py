@@ -1,8 +1,9 @@
 import typer
 import sys
+from loguru import logger
 
 sys.path.append("./")
-import referee
+import refy as PI
 
 app = typer.Typer()
 
@@ -40,18 +41,17 @@ def suggest(
                 only papers older than that are kept for recomendation
             savepath: str, Path. Path pointing to a .csv file where the recomendations
                 will be saved
-            debug: bool. If true referee is set in debug mode and more info are printed
+            debug: bool. If true refy is set in debug mode and more info are printed
     """
-    referee.DEBUG = debug
+    if debug:
+        PI.set_logging("DEBUG")
 
-    referee.suggest(
+    logger.debug(f"CLI: suggest for: {filepath}")
+
+    PI.suggest(
         filepath, N=N, since=since, to=to, savepath=savepath,
     )
 
-
-# TODO fix debug messages showing up
-# TODO finish this
-# TODO add this to tests
 
 if __name__ == "__main__":
     app()

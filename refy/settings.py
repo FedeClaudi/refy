@@ -6,7 +6,7 @@ TEST_MODE = False  # gets set to True when running tests
 
 # ----------------------------------- paths ---------------------------------- #
 # create base path folder
-base_dir = Path(os.path.join(os.path.expanduser("~"), ".referee"))
+base_dir = Path(os.path.join(os.path.expanduser("~"), ".refy"))
 base_dir.mkdir(exist_ok=True)
 
 # semantic scholar dbase paths
@@ -28,7 +28,7 @@ d2v_model_path = base_dir / "d2v_model.model"
 example_path = base_dir / "example_library.bib"
 
 # urls
-remote_url_base = "https://gin.g-node.org/FedeClaudi/Referee/raw/master/"
+remote_url_base = "https://gin.g-node.org/FedeClaudi/refy/raw/master/"
 
 # ----------------------------- database settings ---------------------------- #
 # when creating condensed database, keep only papers in these fields

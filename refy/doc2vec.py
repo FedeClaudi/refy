@@ -13,9 +13,9 @@ import multiprocessing
 
 sys.path.append("./")
 
-from referee.settings import base_dir, d2v_model_path
-from referee.database import load_abstracts
-from referee.progress import progress
+from refy.settings import base_dir, d2v_model_path
+from refy.database import load_abstracts
+from refy.progress import progress
 
 
 class D2V:

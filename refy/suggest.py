@@ -4,12 +4,13 @@ import sys
 from pathlib import Path
 
 sys.path.append("./")
-from referee.input import load_user_input
-from referee.database import load_abstracts, load_database
-from referee.progress import suggest_progress
-from referee.utils import to_table
-from referee import doc2vec as d2v
-from referee.settings import example_path
+from refy.input import load_user_input
+from refy.database import load_abstracts, load_database
+from refy.progress import suggest_progress
+from refy.utils import to_table, check_internet_connection
+from refy import doc2vec as d2v
+from refy.settings import example_path
+from refy import download
 
 
 class suggest:
@@ -30,6 +31,8 @@ class suggest:
                 savepath: str, Path. Path pointing to a .csv file where the recomendations
                     will be saved
         """
+        self.check_files()
+
         self.since = since
         self.to = to
         if savepath:
@@ -64,6 +67,21 @@ class suggest:
     @property
     def n_user_papers(self):
         return len(self.user_papers)
+
+    def check_files(self):
+        """
+            Checks that all necessary files are present and tries to download them if not
+        """
+        # download all missing if connection
+        if check_internet_connection():
+            download.download_all()
+
+        # check all files are there
+        passed, missing = download.check_all()
+        if not passed:
+            raise ValueError(
+                f"At least one necessary file missing: {missing.name}. Connect to the internet to download"
+            )
 
     def _progress(self, task_name):
         """

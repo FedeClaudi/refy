@@ -12,14 +12,14 @@ import sys
 
 sys.path.append("./")
 
-from referee.settings import (
+from refy.settings import (
     fields_of_study,
     low_year,
     keywords,
     database_path,
     abstracts_path,
 )
-from referee.utils import (
+from refy.utils import (
     isin,
     to_json,
     from_json,

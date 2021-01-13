@@ -1,5 +1,5 @@
-from referee import suggest
-from referee.settings import example_path, base_dir
+from refy import suggest
+from refy.settings import example_path, base_dir
 import pandas as pd
 
 

@@ -30,7 +30,7 @@ requirements = [
 """
 
 setup(
-    name="referee",
+    name="refy",
     version="0",
     description="not yet",
     long_description=long_description,
@@ -53,7 +53,7 @@ setup(
     packages=find_namespace_packages(exclude=("tests, examples")),
     entry_points={"console_scripts": []},
     include_package_data=True,
-    url="https://github.com/FedeClaudi/referee",
+    url="https://github.com/FedeClaudi/refy",
     author="Federico Claudi",
     zip_safe=False,
 )

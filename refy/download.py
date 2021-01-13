@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.append("./")
 
-from referee.settings import (
+from refy.settings import (
     database_path,
     abstracts_path,
     remote_url_base,
@@ -18,8 +18,38 @@ from referee.settings import (
     test_abstracts_path,
 )
 
-from referee.utils import _request
-from referee.progress import http_retrieve_progress
+from refy.utils import _request
+from refy.progress import http_retrieve_progress
+
+
+# get urls
+database_url = remote_url_base + "database.h5"
+abstracts_url = remote_url_base + "abstracts.json"
+test_database_url = remote_url_base + "test_database.h5"
+test_abstracts_url = remote_url_base + "test_abstracts.json"
+biorxiv_database_url = remote_url_base + "biorxiv_database.h5"
+biorxiv_abstracts_url = remote_url_base + "biorxiv_abstracts.json"
+d2v_model = remote_url_base + "d2v_model.model"
+d2v_vecs = remote_url_base + "d2v_model.model.docvecs.vectors_docs.npy"
+d2v_wv = remote_url_base + "d2v_model.model.wv.vectors.npy"
+d2v_sin = remote_url_base + "d2v_model.model.trainables.syn1neg.npy"
+example_library = remote_url_base + "example_library.bib"
+
+# organize urls and paths
+d2v_base = d2v_model_path.parent
+data = [
+    (database_url, database_path),
+    (abstracts_url, abstracts_path),
+    (test_database_url, test_database_path),
+    (test_abstracts_url, test_abstracts_path),
+    (biorxiv_database_url, biorxiv_database_path),
+    (biorxiv_abstracts_url, biorxiv_abstracts_path),
+    (d2v_model, d2v_model_path),
+    (d2v_vecs, d2v_base / "d2v_model.model.docvecs.vectors_docs.npy"),
+    (d2v_wv, d2v_base / "d2v_model.model.wv.vectors.npy"),
+    (d2v_sin, d2v_base / "d2v_model.model.trainables.syn1neg.npy"),
+    (example_library, example_path),
+]
 
 
 def retrieve_over_http(url, response, output_file_path, task_id):
@@ -51,43 +81,25 @@ def retrieve_over_http(url, response, output_file_path, task_id):
     logger.debug(f"Done downloading {output_file_path.name}")
 
 
+def check_all():
+    """
+        Checks that all necessary files are present
+    """
+    for url, filepath in data:
+        if not filepath.exists():
+            return False, filepath
+        else:
+            return True, None
+
+
 def download_all():
     """
-        Download all data used by referee, in parallel for speed.
-        It checks if all files used by referee are present and if not
+        Download all data used by refy, in parallel for speed.
+        It checks if all files used by refy are present and if not
         it downloads them from GIN: 
-            https://gin.g-node.org/FedeClaudi/Referee/src/master/
+            https://gin.g-node.org/FedeClaudi/refy/src/master/
     """
     logger.debug("Checking that all files are present")
-
-    # get urls
-    database_url = remote_url_base + "database.h5"
-    abstracts_url = remote_url_base + "abstracts.json"
-    test_database_url = remote_url_base + "test_database.h5"
-    test_abstracts_url = remote_url_base + "test_abstracts.json"
-    biorxiv_database_url = remote_url_base + "biorxiv_database.h5"
-    biorxiv_abstracts_url = remote_url_base + "biorxiv_abstracts.json"
-    d2v_model = remote_url_base + "d2v_model.model"
-    d2v_vecs = remote_url_base + "d2v_model.model.docvecs.vectors_docs.npy"
-    d2v_wv = remote_url_base + "d2v_model.model.wv.vectors.npy"
-    d2v_sin = remote_url_base + "d2v_model.model.trainables.syn1neg.npy"
-    example_library = remote_url_base + "example_library.bib"
-
-    # organize urls and paths
-    d2v_base = d2v_model_path.parent
-    data = [
-        (database_url, database_path),
-        (abstracts_url, abstracts_path),
-        (test_database_url, test_database_path),
-        (test_abstracts_url, test_abstracts_path),
-        (biorxiv_database_url, biorxiv_database_path),
-        (biorxiv_abstracts_url, biorxiv_abstracts_path),
-        (d2v_model, d2v_model_path),
-        (d2v_vecs, d2v_base / "d2v_model.model.docvecs.vectors_docs.npy"),
-        (d2v_wv, d2v_base / "d2v_model.model.wv.vectors.npy"),
-        (d2v_sin, d2v_base / "d2v_model.model.trainables.syn1neg.npy"),
-        (example_library, example_path),
-    ]
 
     # download in parallel
     n_cpus = multiprocessing.cpu_count() - 2

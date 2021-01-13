@@ -26,7 +26,7 @@ def to_table(papers):
         box=None,
         title="Recomended papers",
         title_style=f"bold {salmon}",
-        caption=f"{len(papers)} papers, recommended by referee :ok_hand:",
+        caption=f"{len(papers)} papers, recommended by refy :ok_hand:",
         caption_style="dim",
         padding=(1, 1),
     )
