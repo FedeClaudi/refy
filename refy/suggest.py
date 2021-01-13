@@ -191,11 +191,16 @@ class suggest:
         ].drop_duplicates(subset="title")
 
         # drop suggestions whose title is in the user papers
-        titles = suggestions.title.apply(lambda x: x.lower().replace(" ", ""))
-        user_titles = self.user_papers.title.apply(
-            lambda x: x.lower().replace(" ", "")
+        L = len(suggestions)
+        suggestions = suggestions.loc[
+            ~suggestions.title.isin(self.user_papers.title)
+        ]
+        suggestions = suggestions.loc[
+            ~suggestions.doi.isin(self.user_papers.doi)
+        ]
+        logger.debug(
+            f"While collating suggestions, discarded {len(suggestions)-L} suggestions found among user inputs"
         )
-        suggestions = suggestions.loc[~titles.isin(user_titles)]
 
         # Get each paper's score
         max_score = self.suggestions_per_paper * self.n_user_papers

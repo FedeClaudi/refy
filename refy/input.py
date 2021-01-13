@@ -26,11 +26,6 @@ def load_user_input(fpath):
         Arguments:
             fpath: str, Path. Path to a .bib file
     """
-
-    logger.debug(
-        "[red]TODO: See if you can match entries with the database to get full abstracts"
-    )
-
     # load from file
     fpath = Path(fpath)
     if fpath.suffix == ".bib":
@@ -43,8 +38,8 @@ def load_user_input(fpath):
 
     # Clean up data
     data = pd.DataFrame(data.values())
-    data = data[["title", "journal", "author", "abstract"]]
-    data.columns = ["title", "journal", "authors", "abstract"]
+    data = data[["title", "journal", "author", "abstract", "doi"]]
+    data.columns = ["title", "journal", "authors", "abstract", "doi"]
     data["id"] = data["title"]
 
     # keep only papers with abstract

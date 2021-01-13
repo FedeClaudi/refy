@@ -50,12 +50,17 @@ def to_table(papers, title=None):
         else:
             score = ""
 
+        if paper.doi:
+            url = f'[link=https://doi.org/{paper.doi}]https://doi.org/{paper.doi}[/]"'
+        else:
+            url = f"[link={paper.url}]{paper.url}"
+
         table.add_row(
             str(i + 1),
             score,
             f"[dim {amber}]" + str(paper.year),
             paper.title,
-            f"[dim]https://doi.org/{paper.doi}" if paper.doi else paper.url,
+            url,
         )
 
     # fit in a panel
