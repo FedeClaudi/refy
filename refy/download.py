@@ -121,7 +121,6 @@ def download_all():
                     output_file_path,
                     task_id,
                 )
-    logger.debug("Downloaded all files")
 
 
 def check_all():

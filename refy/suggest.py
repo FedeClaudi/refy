@@ -56,7 +56,7 @@ def suggest_one(input_string, N=20, since=None, to=None, savepath=None):
     print(
         to_table(
             suggestions,
-            title=f'Suggestions for input string: [bold {orange}]""',
+            title=f'Suggestions for input string: [bold {orange}]"{input_string}"',
         )
     )
 

@@ -13,20 +13,18 @@ def suggest(
     filepath: str = typer.Argument(
         ..., help="Path to .bib file with user papers metadata"
     ),
-    N: int = typer.Option(
-        100, "--N", help="number of recomendations to return"
-    ),
+    N: int = typer.Option(25, "-N", help="number of recomendations to return"),
     since: int = typer.Option(
-        None, "--since", help="Only keep papers published after SINCE"
+        None, "-since", help="Only keep papers published after SINCE"
     ),
     to: int = typer.Option(
-        None, "--to", help="Only keep papers published before TO"
+        None, "-to", help="Only keep papers published before TO"
     ),
     savepath: str = typer.Option(
-        None, "--save-path", "--s", help="Save suggestions to file"
+        None, "-save-path", "--s", help="Save suggestions to file"
     ),
     debug: bool = typer.Option(
-        False, "--debug", "--d", help="set debug mode ON/OFF"
+        False, "-debug", "--d", help="set debug mode ON/OFF"
     ),
 ):
     """
@@ -56,20 +54,18 @@ def suggest(
 @app.command()
 def query(
     input_string: str = typer.Argument(..., help="Imput string for query"),
-    N: int = typer.Option(
-        100, "--N", help="number of recomendations to return"
-    ),
+    N: int = typer.Option(10, "-N", help="number of recomendations to return"),
     since: int = typer.Option(
-        None, "--since", help="Only keep papers published after SINCE"
+        None, "-since", help="Only keep papers published after SINCE"
     ),
     to: int = typer.Option(
-        None, "--to", help="Only keep papers published before TO"
+        None, "-to", help="Only keep papers published before TO"
     ),
     savepath: str = typer.Option(
-        None, "--save-path", "--s", help="Save suggestions to file"
+        None, "-save-path", "--s", help="Save suggestions to file"
     ),
     debug: bool = typer.Option(
-        False, "--debug", "--d", help="set debug mode ON/OFF"
+        False, "-debug", "--d", help="set debug mode ON/OFF"
     ),
 ):
     """

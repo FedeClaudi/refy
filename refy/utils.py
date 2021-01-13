@@ -25,7 +25,7 @@ def to_table(papers, title=None):
     # create table
     table = Table(
         show_header=True,
-        header_style="bold dim",
+        header_style="bold white",
         show_lines=True,
         expand=False,
         box=None,

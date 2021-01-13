@@ -51,7 +51,7 @@ setup(
     extras_require={},
     python_requires="<3.9",
     packages=find_namespace_packages(exclude=("tests, examples")),
-    entry_points={"console_scripts": []},
+    entry_points={"console_scripts": ["refy = refy.cli:app"]},
     include_package_data=True,
     url="https://github.com/FedeClaudi/refy",
     author="Federico Claudi",

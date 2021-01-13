@@ -24,6 +24,8 @@ def load_abstracts():
             abstracts: dict with all abstracts
     """
     if not settings.TEST_MODE:  # pragma: no cover
+        logger.debug("Loading abstracts")
+
         abstracts = from_json(abstracts_path)
         abstracts.update(from_json(biorxiv_abstracts_path))
     else:
@@ -43,6 +45,8 @@ def load_database():
             database: DataFrame with search database metadata
     """
     if not settings.TEST_MODE:  # pragma: no cover
+        logger.debug("Loading database")
+
         # download semanthic scholar database
         dbase = pd.read_hdf(database_path, key="hdf")
         dbase["source"] = "semanthic scholar"
