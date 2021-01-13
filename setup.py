@@ -31,8 +31,8 @@ requirements = [
 
 setup(
     name="refy",
-    version="0",
-    description="not yet",
+    version="0.1alpha",
+    description="A scientific papers recomendation tool.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
