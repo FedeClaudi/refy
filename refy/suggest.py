@@ -8,9 +8,9 @@ sys.path.append("./")
 from refy.input import load_user_input
 from refy.database import load_database
 from refy.progress import suggest_progress
-from refy.utils import to_table
 from refy import doc2vec as d2v
 from refy import download
+from refy.suggestions import Suggestions
 
 
 def suggest_one(input_string, N=20, since=None, to=None, savepath=None):
@@ -43,19 +43,14 @@ def suggest_one(input_string, N=20, since=None, to=None, savepath=None):
     best_IDs = model.predict(input_string, N=N)
 
     # get selected papers
-    suggestions = database.loc[database["id"].isin(best_IDs)].reset_index()
-    suggestions["score"] = None
+    suggestions = Suggestions(database.loc[database["id"].isin(best_IDs)])
 
     # select papers based on date of publication
-    if since:
-        suggestions = suggestions.loc[suggestions.year >= int(since)]
-    if to:
-        suggestions = suggestions.loc[suggestions.year <= int(to)]
+    suggestions.filter(since=since, to=to)
 
     # print
     print(
-        to_table(
-            suggestions,
+        suggestions.to_table(
             title=f'Suggestions for input string: [bold {orange}]"{input_string}"',
         )
     )
@@ -183,41 +178,25 @@ class suggest:
                 points: dict of title:point entries for each recomended paper
 
             Returns
-                suggestions: pd.DataFrame with suggested papers ordred by score
+                suggestions: Suggestions with suggested papers ordred by score
         """
         # collate recomendations
-        suggestions = self.database.loc[
-            self.database.title.isin(points.keys())
-        ].drop_duplicates(subset="title")
+        suggestions = Suggestions(
+            self.database.loc[self.database.title.isin(points.keys())]
+        )
 
         # drop suggestions whose title is in the user papers
-        L = len(suggestions)
-        suggestions = suggestions.loc[
-            ~suggestions.title.isin(self.user_papers.title)
-        ]
-        suggestions = suggestions.loc[
-            ~suggestions.doi.isin(self.user_papers.doi)
-        ]
-        logger.debug(
-            f"While collating suggestions, discarded {len(suggestions)-L} suggestions found among user inputs"
-        )
+        suggestions.remove_overlap(self.user_papers)
 
         # Get each paper's score
         max_score = self.suggestions_per_paper * self.n_user_papers
-        suggestions["score"] = [
+        score = [
             points[title] / max_score for title in suggestions.title.values
         ]
-
-        # sort recomendations based on score
-        suggestions = suggestions.sort_values("score", ascending=False)
+        suggestions.set_score(score)
 
         # keep only papers published within a given years range
-        if self.since:
-            suggestions = suggestions.loc[suggestions.year >= int(self.since)]
-        if self.to:
-            suggestions = suggestions.loc[suggestions.year <= int(self.to)]
-
-        suggestions = suggestions.reset_index(drop=True)
+        suggestions.filter(to=self.to, since=self.since)
 
         return suggestions
 
@@ -233,7 +212,7 @@ class suggest:
                 N: int, number of best papers to keep
 
             Returns:
-                suggestions: pd.DataFrame with suggested papers sorted by score
+                suggestions: Suggestions with suggested papers sorted by score
         """
         logger.debug(f"Getting suggestions for {self.n_user_papers} papers")
 
@@ -265,8 +244,8 @@ class suggest:
         self.progress.remove_task(self.task_id)
 
         # collate and print suggestions
-        self.suggestions = self._collate_suggestions(points)[:N]
-        print(to_table(self.suggestions))
+        self.suggestions = self._collate_suggestions(points).truncate(self.N)
+        print(self.suggestions)
 
         # save to file
         if self.savepath:
