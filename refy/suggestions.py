@@ -3,6 +3,8 @@ from rich.panel import Panel
 from rich.console import Console
 from io import StringIO
 
+from loguru import logger
+
 from myterial import salmon, orange, amber
 
 
@@ -21,8 +23,8 @@ class Suggestions:
     def __len__(self):
         return len(self.suggestions)
 
-    def __rich__(self):
-        return self.to_table()
+    def __rich_console__(self, *args, **kwargs):
+        yield self.to_table()
 
     def __str__(self):
         buf = StringIO()
@@ -116,6 +118,7 @@ class Suggestions:
                 title: str. Optional input to replace default title
 
         """
+        logger.debug("Suggestions -> table")
         if self.suggestions.empty:
             print(f"[{orange}]Found no papers matching your query, sorry")
             return

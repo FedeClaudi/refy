@@ -11,6 +11,7 @@ from refy.progress import suggest_progress
 from refy import doc2vec as d2v
 from refy import download
 from refy.suggestions import Suggestions
+from refy.keywords import Keywords, get_keywords_from_text
 
 
 def suggest_one(input_string, N=20, since=None, to=None, savepath=None):
@@ -219,9 +220,9 @@ class suggest:
         logger.debug(f"Getting suggestions for {self.n_user_papers} papers")
 
         # progress bar
-        self._progress("Finding matches")
+        self._progress("Looking for good papers")
         select_task = self.progress.add_task(
-            "Selecting best matches...",
+            "Selecting the very best...",
             start=True,
             total=self.n_user_papers,
             current_task="analyzing...",
@@ -246,12 +247,13 @@ class suggest:
 
         # collate and print suggestions
         self.suggestions = self._collate_suggestions(points).truncate(N)
-        print(self.suggestions)
 
         # save to file
         if self.savepath:
             self.suggestions.to_csv(self.savepath)
 
+        # conclusion
+        self.summarize()
         return self.suggestions
 
     def get_keywords(self):
@@ -269,7 +271,7 @@ class suggest:
 
         keywords = {}
         for n, (idx, user_paper) in enumerate(self.user_papers.iterrows()):
-            kwds = self.d2v.predict_keywords(user_paper.abstract, N=10)
+            kwds = get_keywords_from_text(user_paper.abstract, N=10)
 
             for m, kw in enumerate(kwds):
                 if kw in keywords.keys():
@@ -280,7 +282,18 @@ class suggest:
             self.progress.update(task, completed=n)
         self.progress.remove_task(task)
 
-        # a = 1
+        # sort keywords
+        self.keywords = Keywords(keywords)
+
+    def summarize(self):
+        """
+            Print results of query: keywords, recomended papers etc.
+        """
+        # print keywords
+        print(self.keywords)
+
+        # print suggested papers
+        print(self.suggestions)
 
 
 if __name__ == "__main__":

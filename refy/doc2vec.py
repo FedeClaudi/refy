@@ -63,23 +63,6 @@ class D2V:
 
         return matches_id
 
-    def predict_keywords(self, input_abstract, N=10):
-        """
-            Predict the keywords that best match a given abstract.
-
-            Arguments:
-                input_abstract: str. Input abstract
-                N: int. Number of best word matches to keep
-
-            Returns:
-                keywords: list. List of strings with keywords
-        """
-        inferred_vector = self._infer(input_abstract)
-        words = self.model.wv.most_similar(negative=[inferred_vector], topn=N)
-        words = [w[0] for w in words]
-
-        return words
-
 
 # ----------------------------------- utils ---------------------------------- #
 def load_model():

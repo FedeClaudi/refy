@@ -125,9 +125,11 @@ def update_database(
 
 @app.command()
 def train(
-    epochs: int = typer.Argument(50, help="Number of iterations for training"),
-    vecs: int = typer.Argument(500, help="Size of features vector"),
-    lr: float = typer.Argument(0.025, help="Learning rate"),
+    epochs: int = typer.Option(
+        50, "--epochs", help="Number of iterations for training"
+    ),
+    vecs: int = typer.Option(500, "--vecs", help="Size of features vector"),
+    lr: float = typer.Option(0.025, "--lr", help="Learning rate"),
 ):
     """
         Trains the doc2vec model on the database data and abstracts
@@ -137,6 +139,8 @@ def train(
             vecs: int. Dimensionality of the feature vectors
             lr: float. The initial learning rate
     """
+    refy.set_logging("DEBUG")
+
     logger.debug("CLI: training d2v model")
     refy.doc2vec.train_doc2vec_model(n_epochs=epochs, vec_size=vecs, alpha=lr)
 
