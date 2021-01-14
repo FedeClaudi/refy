@@ -51,7 +51,7 @@ def to_table(papers, title=None):
             score = ""
 
         if paper.doi:
-            url = f'[link=https://doi.org/{paper.doi}]https://doi.org/{paper.doi}[/]"'
+            url = f"[link=https://doi.org/{paper.doi}]https://doi.org/{paper.doi}[/]"
         else:
             url = f"[link={paper.url}]{paper.url}"
 
