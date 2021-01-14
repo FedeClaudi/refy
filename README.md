@@ -48,11 +48,11 @@ which should print something like:
 <img src="imgs/helptxt.png" width=800px style='margin:auto'></img>
 </p>
 
->**Note:** the first time you use `refy` it will have to download several files (which you can see [here](https://gin.g-node.org/FedeClaudi/refy/src/master/)) with data it needs to work. This should only take a few minuts and it will require about 3GB of memory/
+>**Note:** the first time you use `refy` it will have to download several files (which you can see [here](https://gin.g-node.org/FedeClaudi/refy/src/master/)) with data it needs to work. This should only take a few minuts and it will require about 3GB of memory
 
 You can use `refy` in two modes:
 1. In `query` mode you can find papers relevant for a given input string (e.g. `locomotion mouse brainstem`)
-2. In `suggest` mode you give `refy` a [`.bib` bibtext](https://en.wikipedia.org/wiki/BibTeX) with metadata about as many publications as you want. `refy` will use this information to find papers relevant across all of your input papers
+2. In `suggest` mode you give `refy` a [`.bib` bibtext file](https://en.wikipedia.org/wiki/BibTeX) with metadata about as many publications as you want. `refy` will use this information to find papers relevant across all of your input papers
 
 For **query mode** you will use the command `refy query STRING` while for `suggest` you'd use `refy suggest PATH`. In both cases you can use optional arguments:
 ```shell
