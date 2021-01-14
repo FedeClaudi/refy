@@ -20,18 +20,9 @@ requirements = [
     "typer",
 ]
 
-"""
-    Installation requires `tables` which on some OSs complains because it can't find HDF5.
-    In that case:
-    ```
-        conda install hdf5
-        conda install pytables
-    ```
-"""
-
 setup(
     name="refy",
-    version="0.1beta",
+    version="0.1b",
     description="A scientific papers recomendation tool.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -49,7 +40,7 @@ setup(
     ],
     install_requires=requirements,
     extras_require={},
-    python_requires="<3.9",
+    python_requires=">3.6",
     packages=find_namespace_packages(exclude=("tests, examples")),
     entry_points={"console_scripts": ["refy = refy.cli:app"]},
     include_package_data=True,
