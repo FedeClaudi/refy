@@ -1,11 +1,11 @@
 from rich.table import Table
-from rich.panel import Panel
 from rich.console import Console
 from io import StringIO
+from rich import print
 
 from loguru import logger
 
-from myterial import salmon, orange, amber
+from myterial import salmon, orange, amber, salmon_lighter
 
 
 class Suggestions:
@@ -110,34 +110,36 @@ class Suggestions:
             ]
         self._reset_idx()
 
-    def to_table(self, title=None):
+    def to_table(self, title=None, highlighter=None):
         """
             Creates a Rich table/panel with a nice representation of the papers
 
             Arguments:
                 title: str. Optional input to replace default title
+                highlighter: Highlighter for mark keywords
 
         """
         logger.debug("Suggestions -> table")
         if self.suggestions.empty:
             print(f"[{orange}]Found no papers matching your query, sorry")
-            return
+            return "no suggestions found"
 
         # create table
         table = Table(
             show_header=True,
-            header_style="bold white",
+            header_style=f"bold {salmon_lighter}",
             show_lines=True,
             expand=False,
             box=None,
-            title=title or "Recomended papers",
+            title=title or ":memo:    recomended papers",
             title_style=f"bold {salmon}",
+            title_justify="left",
             caption=f"{len(self.suggestions)} papers, recommended by refy :ok_hand:",
             caption_style="dim",
             padding=(0, 1),
         )
         table.add_column("#")
-        table.add_column(":thumbs_up: score", style="dim", justify="left")
+        table.add_column("score", style="dim", justify="left")
         table.add_column("year", style="dim", justify="center")
         table.add_column("title", style=f"bold {orange}", min_width=40)
         table.add_column(
@@ -160,11 +162,11 @@ class Suggestions:
                 str(i + 1),
                 score,
                 f"[dim {amber}]" + str(paper.year),
-                paper.title,
+                paper.title
+                if highlighter is None
+                else highlighter(paper.title),
                 url,
             )
 
         # fit in a panel
-        return Panel(
-            table, expand=False, border_style=f"{orange}", padding=(0, 2, 1, 2)
-        )
+        return table

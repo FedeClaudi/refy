@@ -2,6 +2,8 @@ from loguru import logger
 from rich import print
 import sys
 from pathlib import Path
+
+from pyinspect.panels import Report
 from myterial import orange
 
 sys.path.append("./")
@@ -244,9 +246,11 @@ class suggest:
 
             self.progress.update(select_task, completed=n)
         self.progress.remove_task(select_task)
+        self.progress.remove_task(self.task_id)
 
         # collate and print suggestions
-        self.suggestions = self._collate_suggestions(points).truncate(N)
+        self.suggestions = self._collate_suggestions(points)
+        self.suggestions.truncate(N)
 
         # save to file
         if self.savepath:
@@ -289,18 +293,35 @@ class suggest:
         """
             Print results of query: keywords, recomended papers etc.
         """
-        # print keywords
-        print(self.keywords)
+        # get console with highlighter
+        highlighter = self.keywords.get_highlighter()
 
-        # print suggested papers
-        print(self.suggestions)
+        # create summary
+        summary = Report(dim=orange)
+        summary.width = 160
+
+        # keywords
+        summary.add(self.keywords.to_table(), "rich")
+        summary.spacer()
+        summary.line(orange)
+        summary.spacer()
+
+        # suggestions
+        summary.add(self.suggestions.to_table(highlighter=highlighter), "rich")
+        summary.spacer()
+
+        # print
+        print(summary)
+        print("")
 
 
 if __name__ == "__main__":
     import refy
 
     refy.settings.TEST_MODE = True
-    refy.set_logging("DEBUG")
+    refy.settings.DEBUG = False
+    refy.set_logging("INFO")
+
     suggest(refy.settings.example_path, N=100, since=2018)
 
     # suggest_one("locomotion control")
