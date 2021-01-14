@@ -43,7 +43,7 @@ which should print something like:
 
 
 ### Usage
-Usage provides a Command Line Interface (CLI) to expose it's functionality directly in your terminal:
+`refy` provides a Command Line Interface (CLI) to expose it's functionality directly in your terminal:
 <p align="center">
 <img src="imgs/helptxt.png" width=800px style='margin:auto'></img>
 </p>
