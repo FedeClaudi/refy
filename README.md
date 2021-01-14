@@ -18,7 +18,7 @@ This is what `refy` is for: **`refy` analyzes the abstracts of several papers of
 
 ## Usage
 ### Installation
-If you have an environment with `python >= 3.6` and  `python<3.9`, you can install `refy` with:
+If you have an environment with `python >= 3.6`, you can install `refy` with:
 ```
 pip install refy
 ```

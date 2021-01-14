@@ -22,7 +22,7 @@ requirements = [
 
 setup(
     name="refy",
-    version="0.1b",
+    version="0.1",
     description="A scientific papers recomendation tool.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -39,7 +39,9 @@ setup(
         "Intended Audience :: Science/Research",
     ],
     install_requires=requirements,
-    extras_require={},
+    extras_require={
+        "dev": ["pytest", "pytest-sugar", "pytest-cov", "coverage"]
+    },
     python_requires=">3.6",
     packages=find_namespace_packages(exclude=("tests, examples")),
     entry_points={"console_scripts": ["refy = refy.cli:app"]},
