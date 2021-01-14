@@ -93,7 +93,7 @@ class suggest:
             self.progress = progress
             self.n_completed = -1
             self.task_id = self.progress.add_task(
-                "Suggesting papers..", start=True, total=4, current_task="",
+                "Suggesting papers..", start=True, total=5, current_task="",
             )
             # load data
             self.load_data(user_papers)
@@ -101,6 +101,10 @@ class suggest:
             # load d2v model
             self._progress("Loading Doc2Vec model")
             self.d2v = d2v.D2V()
+
+            # get keywords
+            self._progress("Extracting keywords from data")
+            self.get_keywords()
 
             # get suggestions
             self.get_suggestions(N=N)
@@ -190,9 +194,7 @@ class suggest:
 
         # Get each paper's score
         max_score = self.suggestions_per_paper * self.n_user_papers
-        score = [
-            points[title] / max_score for title in suggestions.title.values
-        ]
+        score = [points[title] / max_score for title in suggestions.titles]
         suggestions.set_score(score)
 
         # keep only papers published within a given years range
@@ -241,10 +243,9 @@ class suggest:
 
             self.progress.update(select_task, completed=n)
         self.progress.remove_task(select_task)
-        self.progress.remove_task(self.task_id)
 
         # collate and print suggestions
-        self.suggestions = self._collate_suggestions(points).truncate(self.N)
+        self.suggestions = self._collate_suggestions(points).truncate(N)
         print(self.suggestions)
 
         # save to file
@@ -253,10 +254,39 @@ class suggest:
 
         return self.suggestions
 
+    def get_keywords(self):
+        """
+            Extracts set of keywords that best represent the user papers.
+            These can be used to improve the search and to improve the
+            print out from the query. 
+        """
+        task = self.progress.add_task(
+            "Finding keywords...",
+            start=True,
+            total=self.n_user_papers,
+            current_task="analyzing...",
+        )
+
+        keywords = {}
+        for n, (idx, user_paper) in enumerate(self.user_papers.iterrows()):
+            kwds = self.d2v.predict_keywords(user_paper.abstract, N=10)
+
+            for m, kw in enumerate(kwds):
+                if kw in keywords.keys():
+                    keywords[kw] += 10 - m
+                else:
+                    keywords[kw] = 1
+
+            self.progress.update(task, completed=n)
+        self.progress.remove_task(task)
+
+        # a = 1
+
 
 if __name__ == "__main__":
     import refy
 
+    refy.settings.TEST_MODE = True
     refy.set_logging("DEBUG")
     suggest(refy.settings.example_path, N=100, since=2018)
 

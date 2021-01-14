@@ -39,11 +39,8 @@ class D2V:
         # clean up input
         words = _preprocess_string(input_abstract)
 
-        # convert input to TaggedDocument
-        input_abstract = TaggedDocument(words=words, tags=[-1])
-
         # infer
-        return self.model.infer_vector(input_abstract.words, epochs=100)
+        return self.model.infer_vector(words, epochs=100)
 
     def predict(self, input_abstract, N=20):
         """
@@ -65,6 +62,23 @@ class D2V:
         matches_id = [m[0] for m in matches]
 
         return matches_id
+
+    def predict_keywords(self, input_abstract, N=10):
+        """
+            Predict the keywords that best match a given abstract.
+
+            Arguments:
+                input_abstract: str. Input abstract
+                N: int. Number of best word matches to keep
+
+            Returns:
+                keywords: list. List of strings with keywords
+        """
+        inferred_vector = self._infer(input_abstract)
+        words = self.model.wv.most_similar(negative=[inferred_vector], topn=N)
+        words = [w[0] for w in words]
+
+        return words
 
 
 # ----------------------------------- utils ---------------------------------- #
@@ -130,12 +144,9 @@ def train_doc2vec_model(n_epochs=50, vec_size=500, alpha=0.025):
     model = Doc2Vec(
         vec_size=vec_size,
         alpha=alpha,
-        min_alpha=0.00025,
-        min_count=2,
         sample=0,
-        dm=0,
+        dm=1,
         hs=0,
-        negative=5,
         workers=multiprocessing.cpu_count(),
     )
     model.build_vocab(
