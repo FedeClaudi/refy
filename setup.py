@@ -18,6 +18,7 @@ requirements = [
     "bibtexparser",
     "cython",  # should make gensim faster?
     "typer",
+    "scholarly",
 ]
 
 setup(

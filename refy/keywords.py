@@ -104,6 +104,9 @@ class Keywords:
         return Highlighter(self.kws)
 
     def to_table(self):
+        """
+            Returns a rich.Table with a view of the keywords
+        """
         # create table
         table = Table(
             show_header=False,

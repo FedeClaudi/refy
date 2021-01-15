@@ -122,7 +122,7 @@ def _unpack_single_file(args):
         metadata["id"].append(str(entry["id"]))
         metadata["title"].append(str(entry["title"]))
         metadata["authors"].append(
-            ", ".join([str(a["name"]) for a in entry["authors"]])
+            ";".join([str(a["name"]) for a in entry["authors"]])
         )
         metadata["doi"].append(entry["doi"] or "")
         metadata["url"].append(entry["s2Url"] or "")

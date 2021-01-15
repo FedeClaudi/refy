@@ -72,9 +72,12 @@ def make_biorxiv_database():
                 ["doi", "title", "authors", "date", "category", "abstract"]
             ]
             papers = papers.loc[papers.category.isin(fields_of_study)]
+
+            # fix ID
             papers["id"] = papers["doi"]
             papers = papers.drop_duplicates(subset="id")
 
+            # fix year of publication
             papers["year"] = [
                 p.date.split("-")[0] for i, p in papers.iterrows()
             ]

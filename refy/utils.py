@@ -9,6 +9,24 @@ def isin(l1, l2):
     return any(x in l2 for x in l1)
 
 
+def get_authors(paper):
+    """
+        Gets the authors of a paper and returns them as a list
+
+        Arguments:
+            paper: pd.Series with paper metadata
+
+        Returns:
+            authors: list of str of authors
+    """
+    if paper.source == "biorxiv":
+        splitter = "; "
+    else:
+        splitter = ", "
+
+    return paper.authors.split(splitter)
+
+
 # --------------------------------- internet --------------------------------- #
 def check_internet_connection(
     url="http://www.google.com/", timeout=2, raise_error=True

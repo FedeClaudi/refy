@@ -14,6 +14,7 @@ from refy import doc2vec as d2v
 from refy import download
 from refy.suggestions import Suggestions
 from refy.keywords import Keywords, get_keywords_from_text
+from refy.authors import Authors
 
 
 def suggest_one(input_string, N=20, since=None, to=None, savepath=None):
@@ -250,6 +251,8 @@ class suggest:
 
         # collate and print suggestions
         self.suggestions = self._collate_suggestions(points)
+        self.suggestions.get_authors()
+
         self.suggestions.truncate(N)
 
         # save to file
@@ -293,12 +296,15 @@ class suggest:
         """
             Print results of query: keywords, recomended papers etc.
         """
+        # create a list of most recomended authors
+        authors = Authors(self.suggestions.authors[:5])
+
         # get console with highlighter
         highlighter = self.keywords.get_highlighter()
 
         # create summary
         summary = Report(dim=orange)
-        summary.width = 160
+        summary.width = 200
 
         # keywords
         summary.add(self.keywords.to_table(), "rich")
@@ -308,6 +314,12 @@ class suggest:
 
         # suggestions
         summary.add(self.suggestions.to_table(highlighter=highlighter), "rich")
+        summary.spacer()
+        summary.line(orange)
+        summary.spacer()
+
+        # authors
+        summary.add(authors.to_table(), "rich")
         summary.spacer()
 
         # print

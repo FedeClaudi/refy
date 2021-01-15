@@ -2,10 +2,13 @@ from rich.table import Table
 from rich.console import Console
 from io import StringIO
 from rich import print
+import pandas as pd
 
 from loguru import logger
 
-from myterial import salmon, orange, amber, salmon_lighter
+from myterial import salmon, orange, amber, salmon_lighter, amber_light
+
+from refy.utils import get_authors
 
 
 class Suggestions:
@@ -110,6 +113,22 @@ class Suggestions:
             ]
         self._reset_idx()
 
+    def get_authors(self):
+        """
+            Gets the authors that appear most frequently in your recomended papers
+        """
+        # Get how often authors show up
+        authors = {}
+        for i, paper in self.suggestions.iterrows():
+            for author in get_authors(paper):
+                if author in authors.keys():
+                    authors[author] += 1
+                else:
+                    authors[author] = 1
+
+        # sort authors
+        self.authors = list(pd.Series(authors).sort_values().index[::-1])
+
     def to_table(self, title=None, highlighter=None):
         """
             Creates a Rich table/panel with a nice representation of the papers
@@ -141,10 +160,17 @@ class Suggestions:
         table.add_column("#")
         table.add_column("score", style="dim", justify="left")
         table.add_column("year", style="dim", justify="center")
-        table.add_column("title", style=f"bold {orange}", min_width=40)
         table.add_column(
-            "DOI/url", style="dim",
+            "author",
+            style=f"{amber_light}",
+            justify="right",
+            max_width=26,
+            overflow="ellipsis",
         )
+        table.add_column(
+            "title", style=f"bold {orange}", min_width=60, justify="left"
+        )
+        table.add_column("DOI/url", style="dim")
 
         # add papers to table
         for i, paper in self.suggestions.iterrows():
@@ -158,13 +184,23 @@ class Suggestions:
             else:
                 url = f"[link={paper.url}]{paper.url}"
 
+            authors = get_authors(paper)
+            if len(authors) > 1:
+                author = authors[0] + "[dim] et al."
+            else:
+                author = authors[0]
+
+            if highlighter is None:
+                title = paper.title
+            else:
+                title = highlighter(paper.title)
+
             table.add_row(
                 str(i + 1),
                 score,
                 f"[dim {amber}]" + str(paper.year),
-                paper.title
-                if highlighter is None
-                else highlighter(paper.title),
+                author,
+                title,
                 url,
             )
 
