@@ -4,16 +4,17 @@ import pandas as pd
 
 
 def test_suggst_one():
+    suggest_one("neuron gene expression brain nervous system", N=20)
+
     suggestions = suggest_one(
-        "neuron gene expression brain nervous system", N=20
+        "neuron gene expression brain nervous system",
+        N=20,
+        since=2015,
+        to=2018,
     )
 
-    assert isinstance(suggestions, pd.DataFrame), "returned wrong class"
-
-    # suggestions = suggest_one("neuron gene expression brain nervous system", N=20, since=2015, to=2018)
-
-    # assert suggestions.year.min() == 2015
-    # assert suggestions.year.max() == 2018
+    assert suggestions.suggestions.suggestions.year.min() == 2015
+    assert suggestions.suggestions.suggestions.year.max() == 2018
 
 
 def test_suggest_save():
@@ -26,7 +27,6 @@ def test_suggest_save():
     suggestions = suggest(example_path, N=20, savepath=save_path).suggestions
 
     # check suggestions
-    assert isinstance(suggestions, pd.DataFrame), "wrong class"
     assert len(suggestions) == 20, "wrong number of sugg"
 
     # check saved suggestions
@@ -43,5 +43,5 @@ def test_suggest_criteria():
     # test criteria
     suggestions = suggest(example_path, N=20, since=2015, to=2019).suggestions
 
-    assert suggestions.year.min() == 2015, "since doesnt work"
-    assert suggestions.year.max() == 2019, "to doesnt work"
+    assert suggestions.suggestions.year.min() == 2015, "since doesnt work"
+    assert suggestions.suggestions.year.max() == 2019, "to doesnt work"

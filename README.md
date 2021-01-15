@@ -103,7 +103,7 @@ Will show 100 suggested papers published between 2015 and 2018 and will save the
 > **hint:** if you use reference managers like zotero or paperpile you can easily export bibtext data about your papers
 
 `refy` has two kind of outputs:
-1. It will print to terminal a list of N recomended paper, sorted by their recomendation score. It will also show keywords that appear in your input papers and the authors that came up most frequently in your recomendations (both features only available in `suggest` mode). See the figure at the top of this document for reference.
+1. It will print to terminal a list of N recomended paper, sorted by their recomendation score. It will also show keywords that appear in your input papers and the authors that came up most frequently in your recomendations. See the figure at the top of this document for reference.
 2. Optionally, `refy` can save the list of recomended paper to ` .csv` file so that you may explore these at your leasure.
 
 > **hint: ** the DOIs on the right of the report are working links (if you terminal supports links)!

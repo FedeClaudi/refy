@@ -52,12 +52,35 @@ def suggest_one(input_string, N=20, since=None, to=None, savepath=None):
     # select papers based on date of publication
     suggestions.filter(since=since, to=to)
 
-    # print
-    print(
+    # get authors
+    authors = Authors(suggestions.get_authors())
+
+    # print summary
+    summary = Report(dim=orange)
+    summary.width = 160
+
+    # keywords
+    summary.add(f"[bold {salmon}]:mag:  [u]search keywords\n")
+    summary.add(input_string)
+    summary.spacer()
+    summary.line(orange_dark)
+    summary.spacer()
+
+    # suggestions
+    summary.add(
         suggestions.to_table(
             title=f'Suggestions for input string: [bold {orange}]"{input_string}"',
-        )
+        ),
+        "rich",
     )
+    summary.spacer()
+    summary.line(orange_dark)
+    summary.spacer()
+
+    # authors
+    summary.add(authors.to_table(), "rich")
+    print(summary)
+    print("")
 
     # save to file
     if savepath:
@@ -333,10 +356,10 @@ class suggest:
 if __name__ == "__main__":
     import refy
 
-    refy.settings.TEST_MODE = True
+    refy.settings.TEST_MODE = False
     refy.settings.DEBUG = False
     refy.set_logging("INFO")
 
-    suggest(refy.settings.example_path, N=25, since=2018)
+    # suggest(refy.settings.example_path, N=25, since=2018)
 
-    # suggest_one("locomotion control")
+    suggest_one("locomotion control mouse steering goal directed")

@@ -1,5 +1,6 @@
 from gensim import summarization
 import pandas as pd
+from loguru import logger
 
 from rich.table import Table
 from rich.console import Console
@@ -107,6 +108,7 @@ class Keywords:
         """
             Returns a rich.Table with a view of the keywords
         """
+        logger.debug("keywords -> table")
         # create table
         table = Table(
             show_header=False, show_lines=False, expand=False, box=None,

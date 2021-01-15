@@ -2,6 +2,7 @@ from rich.table import Table
 from rich.console import Console
 from rich.columns import Columns
 from io import StringIO
+from loguru import logger
 
 from myterial import pink, light_green
 
@@ -35,6 +36,7 @@ class Authors:
             Returns a rich.Columns object storing tables
             with a view of the authors
         """
+        logger.debug("authors -> table")
 
         def make_table():
             # create table
