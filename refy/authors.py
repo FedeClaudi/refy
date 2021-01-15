@@ -1,35 +1,9 @@
 from rich.table import Table
 from rich.console import Console
+from rich.columns import Columns
 from io import StringIO
-from scholarly import scholarly
 
-from myterial import salmon, pink, light_blue_light
-
-from refy.utils import check_internet_connection
-
-CONNECTED = check_internet_connection()
-
-
-def get_scholar(author):
-    """
-        Uses scholarly to find authors google scholar data
-
-        Arguments:
-            author: str. Author name
-
-        Returns:
-            author url: str with author's google scholar URL or 
-                a message if no internet connection is available
-    """
-    if CONNECTED:
-        try:
-            author_data = next(scholarly.search_author(author))
-        except StopIteration:
-            return None
-
-        return f'https://scholar.google.com/citations?user={author_data["scholar_id"]}&hl=en'
-    else:
-        return None
+from myterial import pink, light_green
 
 
 class Authors:
@@ -58,31 +32,32 @@ class Authors:
 
     def to_table(self):
         """
-            Returns a rich.Table with a view of the authors
+            Returns a rich.Columns object storing tables
+            with a view of the authors
         """
-        # create table
-        table = Table(
-            show_header=False,
-            show_lines=False,
-            expand=False,
-            box=None,
-            title=":lab_coat:    authors",
-            title_style=f"bold {salmon}",
-            title_justify="left",
-        )
 
-        table.add_column(style=f"{pink}", justify="right")
-        table.add_column(style=f"b {light_blue_light}")
-        table.add_column(style="dim")
+        def make_table():
+            # create table
+            table = Table(
+                show_header=False, show_lines=False, expand=False, box=None,
+            )
 
+            table.add_column(
+                style=f"b {pink}", overflow="ellipsis", justify="right"
+            )
+            table.add_column(style=light_green)
+            return table
+
+        tables, table = [], None
         for n, author in enumerate(self.authors):
-            num = f"{n+1}. "
-            gscholar = get_scholar(author)
-            if gscholar is not None:
-                gscholar = f"[u][link={gscholar}]google[/link]"
-            else:
-                gscholar = "could not retrieve google scholar account"
+            # change table evry 4 authors
+            if n % 4 == 0:
+                if n > 0:
+                    tables.append(table)
+                if len(tables) == 5:
+                    break
+                table = make_table()
 
-            table.add_row(num, author.lstrip(), gscholar)
+            table.add_row(f"{n+1}. ", author)
 
-        return table
+        return Columns(tables, width=28, equal=True, align="left")

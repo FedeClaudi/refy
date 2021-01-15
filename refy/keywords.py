@@ -5,7 +5,7 @@ from rich.table import Table
 from rich.console import Console
 from io import StringIO
 
-from myterial import salmon, pink, light_blue_light
+from myterial import pink, light_blue_light
 
 # -------------------------------- Highlighter ------------------------------- #
 """
@@ -109,18 +109,12 @@ class Keywords:
         """
         # create table
         table = Table(
-            show_header=False,
-            show_lines=False,
-            expand=False,
-            box=None,
-            title=":mag:    keywords",
-            title_style=f"bold {salmon}",
-            title_justify="left",
+            show_header=False, show_lines=False, expand=False, box=None,
         )
         table.add_row()
 
         words = [
-            f"[{pink}]    {n+1}. [u b {light_blue_light}]{kw}"
+            f"[{pink}]    [b]{n+1}.[/b] [u {light_blue_light}]{kw}"
             for n, kw in enumerate(self.kws)
         ]
         table.add_row(*words)

@@ -6,7 +6,7 @@ import pandas as pd
 
 from loguru import logger
 
-from myterial import salmon, orange, amber, salmon_lighter, amber_light
+from myterial import orange, amber, pink, light_green
 
 from refy.utils import get_authors
 
@@ -20,7 +20,7 @@ class Suggestions:
             Arguments:
                 suggestions: pd.DataFrame with suggestions data
         """
-        self.suggestions = suggestions.drop_duplicates(subset="title")
+        self.suggestions = suggestions.drop_duplicates(subset="title").copy()
         self.suggestions["score"] = None  # set it as None to begin with
 
     def __len__(self):
@@ -127,7 +127,7 @@ class Suggestions:
                     authors[author] = 1
 
         # sort authors
-        self.authors = list(pd.Series(authors).sort_values().index[::-1])
+        self.authors = list(pd.Series(authors).sort_values().index)[::-1]
 
     def to_table(self, title=None, highlighter=None):
         """
@@ -146,31 +146,32 @@ class Suggestions:
         # create table
         table = Table(
             show_header=True,
-            header_style=f"bold {salmon_lighter}",
+            header_style=f"bold {pink}",
             show_lines=True,
             expand=False,
             box=None,
-            title=title or ":memo:    recomended papers",
-            title_style=f"bold {salmon}",
-            title_justify="left",
             caption=f"{len(self.suggestions)} papers, recommended by refy :ok_hand:",
             caption_style="dim",
             padding=(0, 1),
         )
-        table.add_column("#")
+        table.add_column("#", style=pink)
         table.add_column("score", style="dim", justify="left")
         table.add_column("year", style="dim", justify="center")
         table.add_column(
             "author",
-            style=f"{amber_light}",
+            style=f"{light_green}",
             justify="right",
-            max_width=26,
-            overflow="ellipsis",
+            width=22,
+            overflow="crop",
         )
         table.add_column(
-            "title", style=f"bold {orange}", min_width=60, justify="left"
+            "title",
+            style=f"bold {orange}",
+            max_width=80,
+            justify="left",
+            overflow="fold",
         )
-        table.add_column("DOI/url", style="dim")
+        table.add_column("DOI", style="dim")
 
         # add papers to table
         for i, paper in self.suggestions.iterrows():
@@ -180,9 +181,9 @@ class Suggestions:
                 score = ""
 
             if paper.doi:
-                url = f"[link=https://doi.org/{paper.doi}]https://doi.org/{paper.doi}[/]"
+                url = f"[link=https://doi.org/{paper.doi}]{paper.doi}[/]"
             else:
-                url = f"[link={paper.url}]{paper.url}"
+                url = f"[link={paper.url}]link[/]"
 
             authors = get_authors(paper)
             if len(authors) > 1:

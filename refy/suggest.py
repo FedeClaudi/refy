@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from pyinspect.panels import Report
-from myterial import orange
+from myterial import orange, salmon, orange_dark
 
 sys.path.append("./")
 from refy.input import load_user_input
@@ -297,28 +297,31 @@ class suggest:
             Print results of query: keywords, recomended papers etc.
         """
         # create a list of most recomended authors
-        authors = Authors(self.suggestions.authors[:5])
+        authors = Authors(self.suggestions.authors)
 
         # get console with highlighter
         highlighter = self.keywords.get_highlighter()
 
         # create summary
         summary = Report(dim=orange)
-        summary.width = 200
+        summary.width = 160
 
         # keywords
+        summary.add(f"[bold {salmon}]:mag:  [u]keywords\n")
         summary.add(self.keywords.to_table(), "rich")
         summary.spacer()
-        summary.line(orange)
+        summary.line(orange_dark)
         summary.spacer()
 
         # suggestions
+        summary.add(f"[bold {salmon}]:memo:  [u]recomended paper\n")
         summary.add(self.suggestions.to_table(highlighter=highlighter), "rich")
         summary.spacer()
-        summary.line(orange)
+        summary.line(orange_dark)
         summary.spacer()
 
         # authors
+        summary.add(f"[bold {salmon}]:lab_coat:  [u]top authors\n")
         summary.add(authors.to_table(), "rich")
         summary.spacer()
 
@@ -334,6 +337,6 @@ if __name__ == "__main__":
     refy.settings.DEBUG = False
     refy.set_logging("INFO")
 
-    suggest(refy.settings.example_path, N=100, since=2018)
+    suggest(refy.settings.example_path, N=25, since=2018)
 
     # suggest_one("locomotion control")
