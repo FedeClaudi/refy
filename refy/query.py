@@ -1,6 +1,8 @@
 from loguru import logger
 from rich import print
 import sys
+import re
+import string
 
 from myterial import orange, salmon, amber_light
 
@@ -38,19 +40,19 @@ class query_author(SimpleQuery):
 
         # select papers with authors
         for author in authors:
-            author.replace("  ", " ")
-            for name in author.split(" "):
-                if len(author.replace(".", "")) == 1:
-                    # ignore initials
-                    continue
+            # remove initials and punctuation from author
+            author = author.strip(string.punctuation)
+            author = re.sub(" [A-Z]*", " ", author).strip()
 
-                # select papers
-                logger.debug(f'matching author: {name+" "}')
-                papers = papers.loc[
-                    papers.authors.str.contains(
-                        name + " ", case=False, regex=False
-                    )
-                ]
+            # make sure there's a space after very name
+            # if len(author.split(' ')) == 1:
+            #     author += ' '
+
+            # select papers
+            logger.debug(f'Matching author with strin: "{author}"')
+            papers = papers.loc[
+                papers.authors.str.contains(author, case=False)
+            ]
 
         logger.debug(f"Found {len(papers)} papers for authors")
 
@@ -139,10 +141,13 @@ if __name__ == "__main__":
     refy.set_logging("DEBUG")
 
     # query("locomotion control mouse steering goal directed")
-    query(
-        "neuron gene expression", N=20, since=2015, to=2018,
-    )
+    # query(
+    #     "neuron gene expression", N=20, since=2015, to=2018,
+    # )
 
+    # query_author('claudi')
     # query_author("Gary Stacey")
     # query_author("Gary  Stacey")
     # query_author("Carandini M.")
+
+    query_author("carandini")
