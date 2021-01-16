@@ -1,24 +1,6 @@
-from refy import suggest, query, query_author
+from refy import suggest
 from refy.settings import example_path, base_dir
 import pandas as pd
-
-
-def test_by_author():
-    query_author("Gary  Stacey")
-
-    query_author("this author doesnt exist probably right")
-
-
-def test_suggest_one():
-    query("neuron gene expression", N=20)
-
-    query(
-        "neuron gene expression", N=20, since=2015, to=2018,
-    )
-
-    query(
-        " i dont think youll find many recomendations with this my dear 1231231"
-    )
 
 
 def test_suggest_save():

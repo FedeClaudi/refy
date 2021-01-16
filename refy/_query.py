@@ -24,6 +24,15 @@ class SimpleQuery:
     def __init__(self):
         download.check_files()
 
+    def __rich_console__(self, *args, **kwargs):
+        "Simple query"
+
+    def __str__(self):
+        "Simple query"
+
+    def __repr__(self):
+        "Simple query"
+
     def fill(self, papers, N, since, to):
         """
             Given a dataframe of papers and some arguments creates and 

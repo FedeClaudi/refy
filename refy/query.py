@@ -1,8 +1,6 @@
 from loguru import logger
 from rich import print
 import sys
-import re
-import string
 
 from myterial import orange, salmon, amber_light
 
@@ -36,23 +34,28 @@ class query_author(SimpleQuery):
 
         # load and clean database
         papers = load_database()
+        # papers['stripped_authors'] = papers.authors.str.replace(r'[^\w\s]', ' ', regex=True)
 
         # select papers with authors
         for author in authors:
-            # remove initials and punctuation from author
-            author = author.strip(string.punctuation)
-            author = re.sub(" [A-Z]*", " ", author).strip()
+            author.replace("  ", " ")
+            for name in author.split(" "):
+                if len(author.replace(".", "")) == 1:
+                    # ignore initials
+                    continue
 
-            # select papers
-            papers = papers.loc[
-                papers.authors.str.contains(author, case=False, regex=False)
-            ]
+                # select papers
+                papers = papers.loc[
+                    papers.authors.str.contains(name, case=False, regex=False)
+                ]
+
         logger.debug(f"Found {len(papers)} papers for authors")
 
         if papers.empty:
             print(
                 f"[{salmon}]Could not find any papers for author(s): {authors}"
             )
+            self.stop()
             return
 
         # fill
@@ -133,6 +136,10 @@ if __name__ == "__main__":
     refy.set_logging("DEBUG")
 
     # query("locomotion control mouse steering goal directed")
+    query(
+        "neuron gene expression", N=20, since=2015, to=2018,
+    )
 
+    # query_author("Gary Stacey")
     # query_author("Gary  Stacey")
-    query_author("Carandini M.")
+    # query_author("Carandini M.")

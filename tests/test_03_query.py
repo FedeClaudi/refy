@@ -1,31 +1,32 @@
-from refy import query, query_author, base_dir
+import refy
 
 
 def test_by_author():
-    query_author("Gary  Stacey")
+    refy.query_author("Gary  Stacey")
 
-    query_author("this author doesnt exist probably right")
+    refy.query_author("Gary  Stacey", to=1990, since=2020)
+
+    # refy.query_author("this author doesnt exist probably right")
 
 
 def test_query():
-    query("neuron gene expression", N=20)
+    refy.query("neuron gene expression", N=20)
 
-    query(
-        "neuron gene expression", N=20, since=2015, to=2018,
-    )
+    # refy.query(
+    #     "neuron gene expression", N=20, since=2015, to=2018,
+    # )
 
-    query(
-        " i dont think youll find many recomendations with this my dear 1231231"
-    )
+    # refy.query(
+    #     " i dont think youll find many recomendations with this my dear 1231231"
+    # )
 
 
-def test_query_save():
-    f = base_dir / "query.csv"
-    if f.exists:
-        f.unlink()
+# def test_query_save():
+#     f = refy.base_dir / "query.csv"
+#     if f.exists:
+#         f.unlink()
 
-    query("neuron gene expression", N=20, savepath=f)
+#     refy.query("neuron gene expression", N=20, savepath=f)
 
-    assert f.exists, "should have saved"
-
-    f.unlink()
+#     assert f.exists, "should have saved"
+#     f.unlink()
