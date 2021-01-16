@@ -45,7 +45,7 @@ def load_database():
             database: DataFrame with search database metadata
     """
     if not settings.TEST_MODE:  # pragma: no cover
-        logger.debug("Loading database")
+        logger.debug(f"Loading database from: {database_path}")
 
         # download semanthic scholar database
         dbase = pd.read_feather(database_path)
@@ -59,7 +59,9 @@ def load_database():
         # merge
         dbase = pd.concat([dbase, biorxiv_dbase], sort=True).reset_index()
     else:
-        logger.debug(f"Loading database in TEST MODE")
+        logger.debug(
+            f"Loading database in TEST MODE from: {test_database_path}"
+        )
         dbase = pd.read_feather(test_database_path)
 
     # clean up years column

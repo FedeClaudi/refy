@@ -51,9 +51,14 @@ class Authors:
             table.add_column(style=light_green)
             return table
 
+        if not self.authors:
+            return "No authors"
+
         tables, table = [], None
         for n, author in enumerate(self.authors):
             if not author:
+                if table is None:
+                    table = make_table()  # otherwise it will give errors
                 continue
 
             # change table evry 4 authors

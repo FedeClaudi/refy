@@ -4,10 +4,11 @@ import sys
 from pathlib import Path
 from rich.spinner import Spinner
 from rich.text import Text
+import pandas as pd
 from rich.live import Live
 
 from pyinspect.panels import Report
-from myterial import orange, salmon, orange_dark
+from myterial import orange, salmon, orange_dark, amber_light
 
 sys.path.append("./")
 from refy.input import load_user_input
@@ -53,7 +54,8 @@ class SimpleQuery:
     def start(self, text):
         """ starts a spinner """
         self.live = Live(
-            Spinner("bouncingBall", text=Text(text, style=orange))
+            Spinner("bouncingBall", text=Text(text, style=orange)),
+            refresh_per_second=10,
         )
 
         self.live.start()
@@ -150,7 +152,11 @@ class by_author(SimpleQuery):
         papers = papers.loc[keep]
         logger.debug(f"Found {len(papers)} papers for authors")
 
-        logger.debug(f"\n\nPapers matching authors:\n{papers.head()}\n\n")
+        pd.set_option("display.width", -1)  # to ensure it's not truncated
+        pd.set_option("display.max_colwidth", -1)
+        logger.debug(
+            f"\n\nPapers matching authors:\n{papers.authors.head()}\n\n"
+        )
 
         if papers.empty:
             print(
@@ -213,8 +219,8 @@ class suggest_one(SimpleQuery):
         self.stop()
         self.print(
             text_title=f"[bold {salmon}]:mag:  [u]search keywords\n",
-            text=input_string,
-            sugg_title=f'Suggestions for input string: [bold {orange}]"{input_string}"',
+            text=f"      [b {amber_light}]" + input_string + "\n",
+            sugg_title=f"Suggestions:",
         )
 
         # save to file

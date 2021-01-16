@@ -4,8 +4,17 @@ import requests
 
 def isin(l1, l2):
     """
-        Checks if any element of a list is included in a second list
+        Checks if any element of a list is included in a second list,
+        returns either True or False
+
+        Arguments:
+            l1, l2: lists
+
+        Returns:
+            is_in: True or False
     """
+    if not l1 or not l2:
+        return False
     return any(x in l2 for x in l1)
 
 
@@ -53,7 +62,7 @@ def check_internet_connection(
     return False
 
 
-def raise_on_no_connection(func):
+def raise_on_no_connection(func):  # pragma: no cover
     """
         Decorator to avoid running a function when there's no internet
     """

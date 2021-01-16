@@ -115,7 +115,8 @@ class Suggestions:
 
     def get_authors(self):
         """
-            Gets the authors that appear most frequently in your recomended papers
+            Gets the authors that appear in the recomended papers
+            sorted by how frequently they appear.
 
             Returns:
                 authors: list of str of authors names
@@ -130,7 +131,11 @@ class Suggestions:
                     authors[author] = 1
 
         # sort authors
-        self.authors = list(pd.Series(authors).sort_values().index)[::-1]
+        authors = pd.Series(authors)
+        if authors.empty:
+            self.authors = []
+        else:
+            self.authors = list(pd.Series(authors).sort_values().index)[::-1]
         return self.authors
 
     def to_table(self, title=None, highlighter=None):

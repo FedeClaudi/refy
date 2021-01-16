@@ -7,18 +7,12 @@ def test_by_author():
     by_author("Gary  Stacey")
 
 
-def test_suggst_one():
-    suggest_one("neuron gene expression brain nervous system", N=20)
+def test_suggest_one():
+    suggest_one("neuron gene expression", N=20)
 
-    suggestions = suggest_one(
-        "neuron gene expression brain nervous system",
-        N=20,
-        since=2015,
-        to=2018,
+    suggest_one(
+        "neuron gene expression", N=20, since=2015, to=2018,
     )
-
-    assert suggestions.suggestions.suggestions.year.min() == 2015
-    assert suggestions.suggestions.suggestions.year.max() == 2018
 
 
 def test_suggest_save():
@@ -44,7 +38,7 @@ def test_suggest_save():
 
 def test_suggest_criteria():
 
-    # test criteria
+    # test criterias
     suggestions = suggest(example_path, N=20, since=2015, to=2019).suggestions
 
     assert suggestions.suggestions.year.min() == 2015, "since doesnt work"

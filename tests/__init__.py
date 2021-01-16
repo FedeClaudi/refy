@@ -5,3 +5,6 @@ import refy
 settings.TEST_MODE = True
 settings.DEBUG = True
 refy.set_logging("DEBUG")
+
+
+DB = refy.database.load_database()
