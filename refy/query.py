@@ -45,15 +45,18 @@ class query_author(SimpleQuery):
                     continue
 
                 # select papers
+                logger.debug(f'matching author: {name+" "}')
                 papers = papers.loc[
-                    papers.authors.str.contains(name, case=False, regex=False)
+                    papers.authors.str.contains(
+                        name + " ", case=False, regex=False
+                    )
                 ]
 
         logger.debug(f"Found {len(papers)} papers for authors")
 
         if papers.empty:
             print(
-                f"[{salmon}]Could not find any papers for author(s): {authors}"
+                f"\n[{salmon}]Could not find any papers for author(s): {authors}"
             )
             self.stop()
             return
@@ -109,7 +112,7 @@ class query(SimpleQuery):
         papers = database.loc[database["id"].isin(best_IDs)]
         if papers.empty:
             print(
-                f'[bold {salmon}]Could not find any suggested paper with query: "{input_string}"'
+                f'\n[bold {salmon}]Could not find any suggested paper with query: "{input_string}"'
             )
             return
 
