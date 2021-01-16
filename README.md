@@ -24,12 +24,6 @@ If you have an environment with `python >= 3.6`, you can install `refy` with:
 pip install refy
 ```
 
-You will then need to install `tables` separately with `pip install tables`, if [you get an error](https://www.google.com/search?client=firefox-b-d&q=pip+install+tables+not+working) while doing that, a possible workaround is:
-```
-conda install hdf5
-conda install pytables
-```
-
 You can check if everything went okay with:
 ```
 refy example

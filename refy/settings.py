@@ -11,15 +11,15 @@ base_dir.mkdir(exist_ok=True)
 
 # semantic scholar dbase paths
 abstracts_path = base_dir / "abstracts.json"
-database_path = base_dir / "database.h5"
+database_path = base_dir / "database.ftr"
 
 # test dbase paths
 test_abstracts_path = base_dir / "test_abstracts.json"
-test_database_path = base_dir / "test_database.h5"
+test_database_path = base_dir / "test_database.ftr"
 
 # biorxiv dbase paths
 biorxiv_abstracts_path = base_dir / "biorxiv_abstracts.json"
-biorxiv_database_path = base_dir / "biorxiv_database.h5"
+biorxiv_database_path = base_dir / "biorxiv_database.ftr"
 
 # d2v model paths
 d2v_model_path = base_dir / "d2v_model.model"

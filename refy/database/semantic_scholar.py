@@ -129,7 +129,7 @@ def _unpack_single_file(args):
 
     # save
     metadata = pd.DataFrame(metadata)
-    metadata.to_hdf(out, key="hdf")
+    metadata.to_feather(out)
 
     to_json(abstracts, out_abs)
 
@@ -191,7 +191,7 @@ def make_database(folder):
     # Load all metadata into a single dataframe
     dfs = []
     for f in track(files, description="Loading data..."):
-        dfs.append(pd.read_hdf(f, key="hdf"))
+        dfs.append(pd.read_feather(f))
 
     # concatenate
     DATA = pd.concat(dfs)
@@ -219,7 +219,7 @@ def make_database(folder):
 
     # save data
     logger.debug("Saving database")
-    DATA.to_hdf(database_path, key="hdf")
+    DATA.to_feather(database_path)
     logger.debug(
         f"Saved database at: {database_path}. {len(DATA)} entries in total"
     )

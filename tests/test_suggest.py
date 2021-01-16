@@ -1,6 +1,10 @@
-from refy import suggest, suggest_one
+from refy import suggest, suggest_one, by_author
 from refy.settings import example_path, base_dir
 import pandas as pd
+
+
+def test_by_author():
+    by_author("Gary  Stacey")
 
 
 def test_suggst_one():

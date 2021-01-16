@@ -17,9 +17,10 @@ class Authors:
                 authors: list of str of authors names
         """
         self.authors = authors
+        logger.debug(f"Spawned Authors with: {len(authors)} authors")
 
     def __len__(self):
-        return len(self.kws)
+        return len(self.authors)
 
     def __rich_console__(self, *args, **kwargs):
         yield self.to_table()
@@ -52,6 +53,9 @@ class Authors:
 
         tables, table = [], None
         for n, author in enumerate(self.authors):
+            if not author:
+                continue
+
             # change table evry 4 authors
             if n % 4 == 0:
                 if n > 0:
@@ -61,5 +65,8 @@ class Authors:
                 table = make_table()
 
             table.add_row(f"{n+1}. ", author)
+
+        if len(self) <= 4:
+            tables.append(table)
 
         return Columns(tables, width=28, equal=True, align="left")

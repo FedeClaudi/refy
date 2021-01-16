@@ -48,11 +48,11 @@ def load_database():
         logger.debug("Loading database")
 
         # download semanthic scholar database
-        dbase = pd.read_hdf(database_path, key="hdf")
+        dbase = pd.read_feather(database_path)
         dbase["source"] = "semanthic scholar"
 
         # download biorxiv database
-        biorxiv_dbase = pd.read_hdf(biorxiv_database_path, key="hdf")
+        biorxiv_dbase = pd.read_feather(biorxiv_database_path)
         del biorxiv_dbase["category"]
         biorxiv_dbase["source"] = "biorxiv"
 
@@ -60,7 +60,7 @@ def load_database():
         dbase = pd.concat([dbase, biorxiv_dbase], sort=True).reset_index()
     else:
         logger.debug(f"Loading database in TEST MODE")
-        dbase = pd.read_hdf(test_database_path, key="hdf")
+        dbase = pd.read_feather(test_database_path)
 
     # clean up years column
     years = [int(p.year) if p.year else 0 for i, p in dbase.iterrows()]

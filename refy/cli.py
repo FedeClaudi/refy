@@ -73,7 +73,7 @@ def query(
 
 
         Arguments:
-            input_stirng: str. String to match against database
+            input_string: str. String to match against database
             N: int. Number of papers to suggest
             since: int or None. If an int is passed it must be a year,
                 only papers more recent than the given year are kept for recomendation
@@ -88,6 +88,46 @@ def query(
 
     refy.suggest_one(
         input_string, N=N, since=since, to=to, savepath=savepath,
+    )
+
+
+@app.command()
+def author(
+    author: str = typer.Argument(..., help="Author name"),
+    N: int = typer.Option(10, "-N", help="number of recomendations to return"),
+    since: int = typer.Option(
+        None, "-since", help="Only keep papers published after SINCE"
+    ),
+    to: int = typer.Option(
+        None, "-to", help="Only keep papers published before TO"
+    ),
+    savepath: str = typer.Option(
+        None, "-save-path", "--s", help="Save suggestions to file"
+    ),
+    debug: bool = typer.Option(
+        False, "-debug", "--d", help="set debug mode ON/OFF"
+    ),
+):
+    """
+        Find relevant papers similar to an input string
+
+
+        Arguments:
+            author: str. Author name for search
+            N: int. Number of papers to suggest
+            since: int or None. If an int is passed it must be a year,
+                only papers more recent than the given year are kept for recomendation
+            to: int or None. If an int is passed it must be a year,
+                only papers older than that are kept for recomendation
+            savepath: str, Path. Path pointing to a .csv file where the recomendations
+                will be saved
+            debug: bool. If true refy is set in debug mode and more info are printed
+    """
+    if debug:
+        refy.set_logging("DEBUG")
+
+    refy.by_author(
+        author, N=N, since=since, to=to, savepath=savepath,
     )
 
 

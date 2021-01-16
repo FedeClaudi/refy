@@ -104,7 +104,7 @@ def make_biorxiv_database():
         )
 
         to_json(abstracts, biorxiv_abstracts_path)
-        papers.to_hdf(biorxiv_database_path, key="hdf")
+        papers.to_feather(biorxiv_database_path)
 
 
 if __name__ == "__main__":

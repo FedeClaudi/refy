@@ -11,6 +11,7 @@ requirements = [
     "nltk",
     "langdetect",
     "pandas",
+    "pyarrow",
     "loguru",
     "requests",
     "myterial",
