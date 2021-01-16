@@ -65,10 +65,7 @@ def load_database():
         dbase = pd.read_feather(test_database_path)
 
     # clean up years column
-    years = [int(p.year) if p.year else 0 for i, p in dbase.iterrows()]
-    dbase["year"] = years
-
-    dbase["input"] = False  # differentiate from user input
+    dbase["year"] = dbase.year.astype(int)
 
     logger.debug(f"Loaded database with {len(dbase)} entries")
     return dbase

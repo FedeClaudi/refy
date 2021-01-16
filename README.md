@@ -35,8 +35,6 @@ which should print something like:
 </p>
 
 
-
-
 ### Usage
 `refy` provides a Command Line Interface (CLI) to expose it's functionality directly in your terminal:
 <p align="center">
@@ -45,11 +43,14 @@ which should print something like:
 
 >**Note:** the first time you use `refy` it will have to download several files (which you can see [here](https://gin.g-node.org/FedeClaudi/refy/src/master/)) with data it needs to work. This should only take a few minuts and it will take up about 3GB of your hard disk space.
 
-You can use `refy` in two modes:
+You can use `refy` in three modes:
 1. In `query` mode you can find papers relevant for a given input string (e.g. `locomotion mouse brainstem`)
 2. In `suggest` mode you give `refy` a `.bib` [bibtext file](https://en.wikipedia.org/wiki/BibTeX) with metadata about as many publications as you want. `refy` will use this information to find papers relevant across all of your input papers.
+3. In`author` mode you can look for papers from an author
 
-For **query mode** you will use the command `refy query STRING` while for `suggest` you'd use `refy suggest PATH`. In both cases you can use optional arguments:
+For **query mode** you will use the command `refy query STRING`, for `suggest` you'd use `refy suggest PATH` and for `author` you'd use `refy author SURNAME`.
+
+ In all cases you can use optional arguments:
 ```shell
     -N INTEGER            number of recomendations to show  [default: 10]
     -since INTEGER        Only keep papers published after SINCE
@@ -62,10 +63,10 @@ For example:
 ```shell
 refy query "locomotion control brainstem" --N 100 --since 2015 --to 2018 --s refs.csv
 ```
-Will show 100 suggested papers published between 2015 and 2018 and will save the results to `refs.csv`.
+Will show 100 suggested papers published between 2015 and 2018 related to locomotrion control and will save the results to `refs.csv`.
+Similarly `refy author Carandini --N 20 --d` will show 20 papers from "Carandini" and print out debug information in the process.
 
->**Note:** `suggest` mode is much more powerful and hence it's the recomended way for finding new literature, however `query` allows you to quickly look up new papers without having to createa a `.bib` fiel.
-
+>**Note:** `suggest` mode is much more powerful and hence it's the recomended way for finding new literature, however `query` allows you to quickly look up new papers without having to createa a `.bib` field. `author` mode can be useful to find other authors that have published with a given author of interest.
 
 >**Note:** in `suggest` mode, the content of your `.bib` file **must** include papers abstracts. **Only papers with abstracts** will be used for the analysis. Your `.bib` file entries should look like this:
 ```

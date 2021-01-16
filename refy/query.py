@@ -1,15 +1,14 @@
 from loguru import logger
 from rich import print
 import sys
-import pandas as pd
-
+import re
+import string
 
 from myterial import orange, salmon, amber_light
 
 sys.path.append("./")
 from refy.database import load_database
 from refy import doc2vec as d2v
-from refy.utils import get_authors, isin
 from refy._query import SimpleQuery
 
 
@@ -28,20 +27,6 @@ class query_author(SimpleQuery):
                 savepath: str, Path. Path pointing to a .csv file where the recomendations
                     will be saved
         """
-
-        def cleans(string):
-            """ clean a single string """
-            for pun in "!()-[]{};:,<>./?@#$%^&*_~":
-                string = string.replace(pun, "")
-            return string.lower()
-
-        def clean(paper):
-            """
-                Clean the papers['authors_clean'] entry of the database
-                by removing punctuation, forcing lower case etc.
-            """
-            return [cleans(a) for a in paper.authors_clean]
-
         SimpleQuery.__init__(self)
         self.start("extracting author's publications")
 
@@ -52,22 +37,17 @@ class query_author(SimpleQuery):
         # load and clean database
         papers = load_database()
 
-        logger.debug("Cleaning up database author entries")
-        papers["authors_clean"] = papers.apply(get_authors, axis=1)
-        papers["authors_clean"] = papers.apply(clean, axis=1)
+        # select papers with authors
+        for author in authors:
+            # remove initials and punctuation from author
+            author = author.strip(string.punctuation)
+            author = re.sub(" [A-Z]*", " ", author).strip()
 
-        # filter by author
-        keep = papers["authors_clean"].apply(
-            isin, args=[cleans(a) for a in authors]
-        )
-        papers = papers.loc[keep]
+            # select papers
+            papers = papers.loc[
+                papers.authors.str.contains(author, case=False, regex=False)
+            ]
         logger.debug(f"Found {len(papers)} papers for authors")
-
-        pd.set_option("display.width", -1)  # to ensure it's not truncated
-        pd.set_option("display.max_colwidth", -1)
-        logger.debug(
-            f"\n\nPapers matching authors:\n{papers.authors.head()}\n\n"
-        )
 
         if papers.empty:
             print(
@@ -124,6 +104,12 @@ class query(SimpleQuery):
 
         # fill
         papers = database.loc[database["id"].isin(best_IDs)]
+        if papers.empty:
+            print(
+                f'[bold {salmon}]Could not find any suggested paper with query: "{input_string}"'
+            )
+            return
+
         self.fill(papers, N, since, to)
 
         # print

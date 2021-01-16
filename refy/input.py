@@ -48,8 +48,7 @@ def load_user_input(fpath):
         for a in data["abstract"].values
     ]
 
-    data = data[has_abs].copy()
-    data["input"] = True
+    data = data[has_abs].reset_index()
 
     # log and return
     logger.debug(f"{len(data)}/{len(has_abs)} user papers have abstracts")
