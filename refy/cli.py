@@ -86,7 +86,7 @@ def query(
     if debug:
         refy.set_logging("DEBUG")
 
-    refy.suggest_one(
+    refy.query(
         input_string, N=N, since=since, to=to, savepath=savepath,
     )
 
@@ -126,7 +126,7 @@ def author(
     if debug:
         refy.set_logging("DEBUG")
 
-    refy.by_author(
+    refy.query_author(
         author, N=N, since=since, to=to, savepath=savepath,
     )
 

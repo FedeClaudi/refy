@@ -2,13 +2,9 @@ from loguru import logger
 from rich import print
 import sys
 from pathlib import Path
-from rich.spinner import Spinner
-from rich.text import Text
-import pandas as pd
-from rich.live import Live
 
 from pyinspect.panels import Report
-from myterial import orange, salmon, orange_dark, amber_light
+from myterial import orange, salmon, orange_dark
 
 sys.path.append("./")
 from refy.input import load_user_input
@@ -19,213 +15,6 @@ from refy import download
 from refy.suggestions import Suggestions
 from refy.keywords import Keywords, get_keywords_from_text
 from refy.authors import Authors
-from refy.utils import get_authors, isin
-
-
-class SimpleQuery:
-    """
-        Handles printing of simple queryies(i.e. not from .bib files) results
-    """
-
-    def __init__(self):
-        download.check_files()
-
-    def fill(self, papers, N, since, to):
-        """
-            Given a dataframe of papers and some arguments creates and 
-            stores an instance of Suggestions and Authors
-
-            Arguments:
-                papers: pd. DataFrame of recomended papers
-                N: int. Number of papers to suggest
-                since: int or None. If an int is passed it must be a year,
-                    only papers more recent than the given year are kept for recomendation
-                to: int or None. If an int is passed it must be a year,
-                    only papers older than that are kept for recomendation
-        """
-        # create suggestions
-        self.suggestions = Suggestions(papers)
-        self.suggestions.filter(since=since, to=to)
-        self.suggestions.truncate(N)
-
-        # get authors
-        self.authors = Authors(self.suggestions.get_authors())
-
-    def start(self, text):
-        """ starts a spinner """
-        self.live = Live(
-            Spinner("bouncingBall", text=Text(text, style=orange)),
-            refresh_per_second=10,
-        )
-
-        self.live.start()
-
-    def stop(self):
-        """ stops a spinner """
-        self.live.stop()
-
-    def print(self, text_title=None, text=None, sugg_title=""):
-        """
-            Print a summary with some text, suggested papers and authors
-
-            Arguments:
-                text_title: str, title for text section
-                text: str, text to place in the initial segment of the report
-                sugg_title: str, title for the suggestions table
-        """
-        # print summary
-        summary = Report(dim=orange)
-        summary.width = 160
-
-        # text
-        if text is not None:
-            if text_title is not None:
-                summary.add(text_title)
-            summary.add(text)
-
-        # suggestions
-        if sugg_title:
-            summary.add(sugg_title)
-        summary.add(
-            self.suggestions.to_table(), "rich",
-        )
-        summary.spacer()
-        summary.line(orange_dark)
-        summary.spacer()
-
-        # authors
-        if len(self.authors):
-            summary.add(f"[bold {salmon}]:lab_coat:  [u]top authors\n")
-            summary.add(self.authors.to_table(), "rich")
-
-        print(summary)
-        print("")
-
-
-class by_author(SimpleQuery):
-    def __init__(self, *authors, N=20, since=None, to=None, savepath=None):
-        """
-            Print all authors in the database from a list of authors
-
-            Arguments:
-                authors: variable number of str with author names
-                N: int. Number of papers to suggest
-                since: int or None. If an int is passed it must be a year,
-                    only papers more recent than the given year are kept for recomendation
-                to: int or None. If an int is passed it must be a year,
-                    only papers older than that are kept for recomendation
-                savepath: str, Path. Path pointing to a .csv file where the recomendations
-                    will be saved
-        """
-
-        def cleans(string):
-            """ clean a single string """
-            for pun in "!()-[]{};:,<>./?@#$%^&*_~":
-                string = string.replace(pun, "")
-            return string.lower()
-
-        def clean(paper):
-            """
-                Clean the papers['authors_clean'] entry of the database
-                by removing punctuation, forcing lower case etc.
-            """
-            return [cleans(a) for a in paper.authors_clean]
-
-        SimpleQuery.__init__(self)
-        self.start("extracting author's publications")
-
-        logger.debug(
-            f"Fining papers by author(s) with {len(authors)} author(s): {authors}"
-        )
-
-        # load and clean database
-        papers = load_database()
-
-        logger.debug("Cleaning up database author entries")
-        papers["authors_clean"] = papers.apply(get_authors, axis=1)
-        papers["authors_clean"] = papers.apply(clean, axis=1)
-
-        # filter by author
-        keep = papers["authors_clean"].apply(
-            isin, args=[cleans(a) for a in authors]
-        )
-        papers = papers.loc[keep]
-        logger.debug(f"Found {len(papers)} papers for authors")
-
-        pd.set_option("display.width", -1)  # to ensure it's not truncated
-        pd.set_option("display.max_colwidth", -1)
-        logger.debug(
-            f"\n\nPapers matching authors:\n{papers.authors.head()}\n\n"
-        )
-
-        if papers.empty:
-            print(
-                f"[{salmon}]Could not find any papers for author(s): {authors}"
-            )
-            return
-
-        # fill
-        self.fill(papers, N, since, to)
-
-        # print
-        self.stop()
-        ax = " ".join(authors)
-        self.print(
-            sugg_title=f'Suggestions for author(s): [bold {orange}]"{ax}"\n'
-        )
-
-        # save to file
-        if savepath:
-            self.suggestions.to_csv(savepath)
-
-
-class suggest_one(SimpleQuery):
-    def __init__(self, input_string, N=20, since=None, to=None, savepath=None):
-        """
-            Finds recomendations based on a single input string (with keywords,
-            or a paper abstract or whatever) instead of an input .bib file
-
-            Arguments:
-                input_stirng: str. String to match against database
-                N: int. Number of papers to suggest
-                since: int or None. If an int is passed it must be a year,
-                    only papers more recent than the given year are kept for recomendation
-                to: int or None. If an int is passed it must be a year,
-                    only papers older than that are kept for recomendation
-                savepath: str, Path. Path pointing to a .csv file where the recomendations
-                    will be saved
-
-            Returns:
-                suggestions: pd.DataFrame of N recomended papers
-        """
-        logger.debug("suggest one")
-        SimpleQuery.__init__(self)
-        self.start("Finding recomended papers")
-
-        # load database and abstracts
-        database = load_database()
-
-        # load model
-        model = d2v.D2V()
-
-        # find recomendations
-        best_IDs = model.predict(input_string, N=N)
-
-        # fill
-        papers = database.loc[database["id"].isin(best_IDs)]
-        self.fill(papers, N, since, to)
-
-        # print
-        self.stop()
-        self.print(
-            text_title=f"[bold {salmon}]:mag:  [u]search keywords\n",
-            text=f"      [b {amber_light}]" + input_string + "\n",
-            sugg_title=f"Suggestions:",
-        )
-
-        # save to file
-        if savepath:
-            self.suggestions.to_csv(savepath)
 
 
 class suggest:
@@ -495,12 +284,8 @@ class suggest:
 if __name__ == "__main__":
     import refy
 
-    refy.settings.TEST_MODE = True
+    refy.settings.TEST_MODE = False
 
     refy.set_logging("DEBUG")
 
-    # suggest(refy.settings.example_path, N=25, since=2018)
-
-    # suggest_one("locomotion control mouse steering goal directed")
-
-    by_author("Gary  Stacey")
+    suggest(refy.settings.example_path, N=25, since=2018)
