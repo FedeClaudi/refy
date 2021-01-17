@@ -62,7 +62,8 @@ def exclude(entry):
         return True
 
     # keep only entries with keywords in abstract
-    if not any((keyword in abstract) for keyword in keywords):
+    ab_low = abstract.lower()
+    if not any((keyword in ab_low) for keyword in keywords):
         return True
 
     # keep only english
@@ -89,7 +90,7 @@ def _unpack_single_file(args):
 
     # prepare paths
     name = fpath.name.split(".")[0]
-    out = dfs_dir / (name + ".h5")
+    out = dfs_dir / (name + ".ftr")
     out_abs = dfs_dir / (name + "_abstracts.json")
 
     # load data
@@ -142,13 +143,13 @@ def upack_database(folder):
     """
         Opens up .gz with papers metadata info from 
         http://s2-public-api-prod.us-west-2.elasticbeanstalk.com/corpus/download/
-        and saves is at a .h5 file. 
+        and saves is at a .ftr file. 
         The operation is parallelized to speed things up. 
 
         For each .gz file:
             1. open the file and load the data
             2. select papers that match the criteria set in settings.py
-            3. save the selected papers' metadata to .h5 (pandas dataframe) in folder/dfs
+            3. save the selected papers' metadata to .ftr (pandas dataframe) in folder/dfs
             4. save the selcted papers's abstracct to .txt in folder/abstracts
 
         Arguments:
@@ -166,6 +167,10 @@ def upack_database(folder):
     # extract data from all files
     files = list((folder / "compressed").glob("*.gz"))
     logger.debug(f"Uncompressing {len(files)} files")
+
+    # ? for debugging
+    # args = (files[0], dfs_dir, 0, len(files))
+    # _unpack_single_file(args)
 
     n_cpus = multiprocessing.cpu_count() - 2
     with multiprocessing.Pool(processes=n_cpus) as pool:
@@ -185,7 +190,7 @@ def make_database(folder):
     logger.debug(f"Making database from data folder: {folder}")
 
     folder = Path(folder)
-    files = list((folder / "dfs").glob("*.h5"))
+    files = list((folder / "dfs").glob("*.ftr"))
     logger.debug(f"Found {len(files)} files")
 
     # Load all metadata into a single dataframe
@@ -240,7 +245,11 @@ def make_database(folder):
 
 
 if __name__ == "__main__":
-    fld = "M:\\PAPERS_DBASE"
-    # upack_database(fld)
+    import refy
 
-    make_database(fld)
+    refy.set_logging("DEBUG")
+
+    fld = "M:\\PAPERS_DBASE"
+    upack_database(fld)
+
+    # make_database(fld)

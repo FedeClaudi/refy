@@ -32,7 +32,7 @@ remote_url_base = "https://gin.g-node.org/FedeClaudi/refy/raw/master/"
 
 # ----------------------------- database settings ---------------------------- #
 # when creating condensed database, keep only papers in these fields
-fields_of_study = ("Biology", "Neuroscience", "neuroscience")
+fields_of_study = ("Biology", "Neuroscience", "neuroscience", "Medicine")
 keywords = (
     "neuro",
     "neuron",
@@ -46,6 +46,9 @@ keywords = (
     "cognition",
     "neural network",
     "deep learning",
+    "dendrite",
+    "dendritic",
+    "behaviour",
 )  # only keep papers that have these keywords in the abstract
 
 
@@ -54,4 +57,4 @@ low_year = 1990  # only papers more recent than this are kept
 
 # start and end date for queries from biorxiv's server
 biorxiv_start_date = "2015-01-01"
-biorxiv_end_date = "2020-12-31"
+biorxiv_end_date = "2021-01-15"

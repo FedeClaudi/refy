@@ -23,11 +23,11 @@ from refy.progress import http_retrieve_progress
 
 
 # get urls
-database_url = remote_url_base + "database.h5"
+database_url = remote_url_base + "database.ftr"
 abstracts_url = remote_url_base + "abstracts.json"
-test_database_url = remote_url_base + "test_database.h5"
+test_database_url = remote_url_base + "test_database.ftr"
 test_abstracts_url = remote_url_base + "test_abstracts.json"
-biorxiv_database_url = remote_url_base + "biorxiv_database.h5"
+biorxiv_database_url = remote_url_base + "biorxiv_database.ftr"
 biorxiv_abstracts_url = remote_url_base + "biorxiv_abstracts.json"
 d2v_model = remote_url_base + "d2v_model.model"
 d2v_vecs = remote_url_base + "d2v_model.model.docvecs.vectors_docs.npy"

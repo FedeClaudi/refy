@@ -23,7 +23,7 @@ def make():
 
     # save
     to_json(abstracts, base_dir / "test_abstracts.json")
-    db.to_hdf(base_dir / "test_database.h5", key="hdf")
+    db.to_feather(base_dir / "test_database.ftr")
 
 
 if __name__ == "__main__":
