@@ -21,7 +21,7 @@ This is what `refy` is for: **`refy` analyzes the abstracts of several papers of
 ### Installation
 If you have an environment with `python >= 3.6`, you can install `refy` with:
 ```
-pip install refy
+pip install git+https://github.com/FedeClaudi/refy.git
 ```
 
 You can check if everything went okay with:
