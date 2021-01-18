@@ -27,14 +27,18 @@ def cosine(v1, v2):
 class Daily(SimpleQuery):
     def __init__(self):
         """
-            Script that can be run daily to check relevant papers
-            published on biorxiv in the last 24 hours.
+            Get biorxiv preprints released in the last 24 hours
+            and select the top 10 matches for user inputs
         """
         SimpleQuery.__init__(self)
         logger.debug("Launching daily biorxiv check")
         self.model = D2V()
 
     def run(self, user_data_filepath):
+        """
+            run daily: fetch from biorxiv, extract
+            best matches and print results.
+        """
         self.start(text="Getting daily suggestions")
 
         # get data from biorxiv
@@ -145,8 +149,15 @@ class Daily(SimpleQuery):
         logger.debug(f"Kept {len(self.papers)} biorxiv papers")
 
     def get_suggestions(self):
+        """
+            Computes the average cosine similarity
+            between the input user papers and those from biorxiv, 
+            then uses the distance to sort the biorxiv papers
+            and select the best 10
+        """
         logger.debug("getting suggestions")
 
+        # compute cosine distances
         distances = {ID: 0 for ID in self.papers_vecs.keys()}
         for uID, uvec in self.user_papers_vecs.items():
             for ID, vector in self.papers_vecs.items():

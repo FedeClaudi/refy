@@ -1,11 +1,30 @@
 import typer
 import sys
 from loguru import logger
+import schedule
 
 sys.path.append("./")
 import refy
 
 app = typer.Typer()
+
+
+@app.command()
+def daily(
+    filepath: str = typer.Argument(
+        ..., help="Path to .bib file with user papers metadata"
+    ),
+):
+    """
+        Run suggestions on latest biorxvis preprints, daily.
+    """
+
+    def job():
+        print("I'm working...")
+
+    # TODO make it run daily: https://www.dssw.co.uk/blog/2011-05-22-how-to-run-a-shell-script-every-day-on-a-mac/
+
+    schedule.every(10).seconds.do(job)
 
 
 @app.command()
