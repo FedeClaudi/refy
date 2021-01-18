@@ -145,9 +145,9 @@ if __name__ == "__main__":
     #     "neuron gene expression", N=20, since=2015, to=2018,
     # )
 
-    # query_author('claudi')
-    # query_author("Gary Stacey")
-    # query_author("Gary  Stacey")
-    # query_author("Carandini M.")
+    query_author("claudi")
+    query_author("Gary Stacey")
+    query_author("Gary  Stacey")
+    query_author("Carandini M.")
 
     query_author("carandini")
