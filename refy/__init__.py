@@ -3,6 +3,7 @@ from pyinspect import install_traceback
 install_traceback(hide_locals=True)
 
 from refy.suggest import suggest
+from refy.daily import Daily
 from refy.query import query_author, query
 from refy.settings import (
     DEBUG,
