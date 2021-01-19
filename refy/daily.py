@@ -40,7 +40,7 @@ class Daily(SimpleQuery):
         logger.debug("Launching daily biorxiv check")
         self.model = D2V()
 
-    def run(self, user_data_filepath, html_path=None):
+    def run(self, user_data_filepath, html_path=None, N=10):
         """
             Runs the daily search and prints/saves the results
 
@@ -49,8 +49,9 @@ class Daily(SimpleQuery):
                 best matches and print results.
                 html_path: str, Path. Path to a .html file 
                     where to save the output
+                N: int. Number of papers to return
         """
-        logger.info("Starting daily search")
+        logger.debug("Starting daily search")
         self.start(text="Getting daily suggestions")
 
         # get data from biorxiv
@@ -75,8 +76,7 @@ class Daily(SimpleQuery):
         }
 
         # get suggestions
-        self.get_suggestions()
-
+        self.get_suggestions(N)
         self.stop()
 
         # print
@@ -168,12 +168,15 @@ class Daily(SimpleQuery):
         self.papers, self.abstracts = self.clean(papers)
         logger.debug(f"Kept {len(self.papers)} biorxiv papers")
 
-    def get_suggestions(self):
+    def get_suggestions(self, N):
         """
             Computes the average cosine similarity
             between the input user papers and those from biorxiv, 
             then uses the distance to sort the biorxiv papers
             and select the best 10
+
+            Arguments:
+                N: int. number of papers to suggest
         """
         logger.debug("getting suggestions")
 
@@ -188,7 +191,7 @@ class Daily(SimpleQuery):
         # sort and truncate
         self.fill(self.papers, len(distances), None, None)
         self.suggestions.set_score(distances.values())
-        self.suggestions.truncate(10)
+        self.suggestions.truncate(N)
         self.authors = Authors(self.suggestions.get_authors())
 
 
@@ -233,7 +236,7 @@ if __name__ == "__main__":
     import refy
 
     refy.set_logging("DEBUG")
-    # d = Daily().run(refy.settings.example_path)
+    d = Daily().run(refy.settings.example_path, html_path="test.html")
 
-    # setup('federico claudi', '/Users/federicoclaudi/miniconda3/envs/ref/bin/python', 'test.bib')
-    stop("federico claudi")
+    # # setup('federico claudi', '/Users/federicoclaudi/miniconda3/envs/ref/bin/python', 'test.bib')
+    # stop("federico claudi")

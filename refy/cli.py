@@ -13,17 +13,20 @@ def daily(
     filepath: str = typer.Argument(
         ..., help="Path to .bib file with user papers metadata"
     ),
+    N: int = typer.Option(10, "-N", help="number of recomendations to return"),
+    outputpath: str = typer.Option(
+        None, "-o", help="Path to .html file where to save suggestions"
+    ),
 ):
     """
         Run suggestions on latest biorxvis preprints, daily.
     """
 
     # set specific log file
-    logpath = str(refy.base_dir / "daily.log")
-    refy.set_logging(level="INFO", path=logpath)
+    refy.set_logging(level="INFO")
 
     # run daily search
-    refy.Daily().run(filepath)
+    refy.Daily().run(filepath, html_path=outputpath, N=N)
 
 
 @app.command()
@@ -71,7 +74,7 @@ def suggest(
         None, "-to", help="Only keep papers published before TO"
     ),
     savepath: str = typer.Option(
-        None, "-save-path", "--s", help="Save suggestions to file"
+        None, "-save-path", "--s", help="Save suggestions to .CSV file"
     ),
     debug: bool = typer.Option(
         False, "-debug", "--d", help="set debug mode ON/OFF"

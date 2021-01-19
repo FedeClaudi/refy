@@ -4,7 +4,7 @@ import sys
 
 from rich.spinner import Spinner
 from rich.text import Text
-
+from rich.terminal_theme import TerminalTheme
 from rich.live import Live
 
 from pyinspect.panels import Report
@@ -15,6 +15,34 @@ sys.path.append("./")
 from refy import download
 from refy.suggestions import Suggestions
 from refy.authors import Authors
+
+
+# define a theme for HTML exports
+# see: https://github.com/willmcgugan/rich/blob/d9d59c6eda/rich/terminal_theme.py
+TERMINAL_THEME = TerminalTheme(
+    (30, 30, 30),
+    (0, 0, 0),
+    [
+        (255, 255, 255),
+        (128, 0, 0),
+        (0, 128, 0),
+        (128, 128, 0),
+        (0, 0, 128),
+        (128, 0, 128),
+        (0, 128, 128),
+        (192, 192, 192),
+    ],
+    [
+        (128, 128, 128),
+        (255, 0, 0),
+        (0, 255, 0),
+        (255, 255, 0),
+        (0, 0, 255),
+        (255, 0, 255),
+        (0, 255, 255),
+        (255, 255, 255),
+    ],
+)
 
 
 class SimpleQuery:
@@ -106,6 +134,8 @@ class SimpleQuery:
             summary.add(f"[bold {salmon}]:lab_coat:  [u]top authors\n")
             summary.add(self.authors.to_table(), "rich")
 
+        return summary
+
     def print(self, text_title=None, text=None, sugg_title=""):
         """
             Print a summary with some text, suggested papers and authors
@@ -138,4 +168,4 @@ class SimpleQuery:
 
         console = Console(record=True)
         console.print(summary)
-        console.save_html(file_path)
+        console.save_html(file_path, theme=TERMINAL_THEME)
