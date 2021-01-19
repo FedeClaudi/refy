@@ -17,10 +17,12 @@ from loguru import logger
 import sys
 
 
-def set_logging(level="INFO"):
+def set_logging(level="INFO", path=None):
     logger.remove()
     logger.add(sys.stdout, level=level)
-    logger.add(str(base_dir / "log.log"), level="DEBUG")
+
+    path = path or str(base_dir / "log.log")
+    logger.add(path, level="DEBUG")
 
 
 if not DEBUG:

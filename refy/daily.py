@@ -5,6 +5,12 @@ import pandas as pd
 from numpy import dot
 from numpy.linalg import norm
 from myterial import orange, green
+from pathlib import Path
+import sys
+from crontab import CronTab
+
+
+sys.path.append("./")
 
 from refy.utils import check_internet_connection, request
 from refy.settings import fields_of_study
@@ -34,11 +40,17 @@ class Daily(SimpleQuery):
         logger.debug("Launching daily biorxiv check")
         self.model = D2V()
 
-    def run(self, user_data_filepath):
+    def run(self, user_data_filepath, html_path=None):
         """
-            run daily: fetch from biorxiv, extract
-            best matches and print results.
+            Runs the daily search and prints/saves the results
+
+            Arguments:
+                run daily: fetch from biorxiv, extract
+                best matches and print results.
+                html_path: str, Path. Path to a .html file 
+                    where to save the output
         """
+        logger.info("Starting daily search")
         self.start(text="Getting daily suggestions")
 
         # get data from biorxiv
@@ -67,10 +79,18 @@ class Daily(SimpleQuery):
 
         self.stop()
 
+        # print
         today = datetime.today().strftime("%Y-%m-%d")
         self.print(
             text=f"[{orange}]:calendar:  Daily suggestions for: [{green} bold]{today}\n\n"
         )
+
+        # save to html
+        if html_path:
+            self.to_html(
+                html_path,
+                text=f"[{orange}]:calendar:  Daily suggestions for: [{green} bold]{today}\n\n",
+            )
 
     def clean(self, papers):
         """
@@ -172,8 +192,48 @@ class Daily(SimpleQuery):
         self.authors = Authors(self.suggestions.get_authors())
 
 
+def setup(user, python_path, bibfile):
+    """
+        Sets up crontab schedule to run Daily every day
+
+        Arguments:
+            user: str. user name
+            python_path: str. path to python installation to use
+    """
+
+    refy_folder = Path(__file__).parent
+    command = f"{python_path} {refy_folder}/cli.py daily {bibfile}"
+
+    logger.debug(f"Setting up crontab for user: {user}")
+    cron = CronTab(user=user)
+
+    logger.debug(f"setting up crontab jobs with command:\n     {command}")
+    job = cron.new(command=command, comment="refy_daily")
+    job.minute.every(1)
+    cron.write()
+
+    jobs = "\n".join([str(c) for c in cron])
+    logger.debug(f"Crontab jobs:\n{jobs}")
+
+
+def stop(user):
+    """
+        Removes crontab job for refy
+    """
+    cron = CronTab(user=user)
+    cron.remove_all(comment="refy_daily")
+    cron.write()
+
+    # log jobs
+    jobs = "\n".join([str(c) for c in cron])
+    logger.debug(f"Crontab jobs:\n{jobs}")
+
+
 if __name__ == "__main__":
     import refy
 
     refy.set_logging("DEBUG")
-    d = Daily().run(refy.settings.example_path)
+    # d = Daily().run(refy.settings.example_path)
+
+    # setup('federico claudi', '/Users/federicoclaudi/miniconda3/envs/ref/bin/python', 'test.bib')
+    stop("federico claudi")

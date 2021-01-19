@@ -1,4 +1,5 @@
 from rich import print
+from rich.console import Console
 import sys
 
 from rich.spinner import Spinner
@@ -68,14 +69,17 @@ class SimpleQuery:
         """ stops a spinner """
         self.live.stop()
 
-    def print(self, text_title=None, text=None, sugg_title=""):
+    def _make_summary(self, text_title=None, text=None, sugg_title=""):
         """
-            Print a summary with some text, suggested papers and authors
+            Creates a summary with some text, suggested papers and authors
 
             Arguments:
                 text_title: str, title for text section
                 text: str, text to place in the initial segment of the report
                 sugg_title: str, title for the suggestions table
+
+            Returns:
+                summary: pyinspect.Report with content
         """
         # print summary
         summary = Report(dim=orange)
@@ -102,5 +106,36 @@ class SimpleQuery:
             summary.add(f"[bold {salmon}]:lab_coat:  [u]top authors\n")
             summary.add(self.authors.to_table(), "rich")
 
+    def print(self, text_title=None, text=None, sugg_title=""):
+        """
+            Print a summary with some text, suggested papers and authors
+
+            Arguments:
+                text_title: str, title for text section
+                text: str, text to place in the initial segment of the report
+                sugg_title: str, title for the suggestions table
+        """
+        summary = self._make_summary(
+            text_title=text_title, text=text, sugg_title=sugg_title
+        )
+
         print(summary)
         print("")
+
+    def to_html(self, file_path, text_title=None, text=None, sugg_title=""):
+        """
+            Saves the summary view of the query's content to an html file
+
+
+            Arguments:
+                text_title: str, title for text section
+                text: str, text to place in the initial segment of the report
+                sugg_title: str, title for the suggestions table
+        """
+        summary = self._make_summary(
+            text_title=text_title, text=text, sugg_title=sugg_title
+        )
+
+        console = Console(record=True)
+        console.print(summary)
+        console.save_html(file_path)

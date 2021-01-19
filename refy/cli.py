@@ -1,7 +1,6 @@
 import typer
 import sys
 from loguru import logger
-import schedule
 
 sys.path.append("./")
 import refy
@@ -19,12 +18,44 @@ def daily(
         Run suggestions on latest biorxvis preprints, daily.
     """
 
-    def job():
-        print("I'm working...")
+    # set specific log file
+    logpath = str(refy.base_dir / "daily.log")
+    refy.set_logging(level="INFO", path=logpath)
 
-    # TODO make it run daily: https://www.dssw.co.uk/blog/2011-05-22-how-to-run-a-shell-script-every-day-on-a-mac/
+    # run daily search
+    refy.Daily().run(filepath)
 
-    schedule.every(10).seconds.do(job)
+
+@app.command()
+def setup_daily(
+    user: str = typer.Argument(..., help="Computer user name"),
+    python_path: str = typer.Argument(
+        ..., help="Path of python executable (which python)"
+    ),
+    filepath: str = typer.Argument(
+        ..., help="Path to .bib file with user papers metadata"
+    ),
+):
+    """
+        Sets up a scheduled daily task to recomend papers
+    """
+    # set specific log file
+    logpath = refy.base_dir / "daily.log"
+    if logpath.exists():
+        logpath.unlink()
+
+    refy.set_logging(level="INFO", path=str(logpath))
+
+    # setup daily
+    refy.daily.setup(user, python_path, filepath)
+
+
+@app.command()
+def stop_daily(user: str = typer.Argument(..., help="Computer user name"),):
+    """
+        removes any schedule daily task from refy
+    """
+    refy.daily.stop(user)
 
 
 @app.command()
