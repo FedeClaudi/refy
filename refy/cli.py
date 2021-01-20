@@ -23,7 +23,11 @@ def daily(
     """
 
     # set specific log file
-    refy.set_logging(level="INFO")
+    logpath = refy.base_dir / "daily.log"
+    try:
+        refy.set_logging(level="DEBUG", path=logpath)
+    except:
+        refy.set_logging(level="DEBUG")
 
     # run daily search
     refy.Daily().run(filepath, html_path=outputpath, N=N)
@@ -38,6 +42,10 @@ def setup_daily(
     filepath: str = typer.Argument(
         ..., help="Path to .bib file with user papers metadata"
     ),
+    N: int = typer.Option(10, "-N", help="number of recomendations to return"),
+    outputpath: str = typer.Option(
+        None, "-o", help="Path to .html file where to save suggestions"
+    ),
 ):
     """
         Sets up a scheduled daily task to recomend papers
@@ -50,7 +58,13 @@ def setup_daily(
     refy.set_logging(level="INFO", path=str(logpath))
 
     # setup daily
-    refy.daily.setup(user, python_path, filepath)
+    try:
+        refy.daily.setup(user, python_path, filepath, N, outputpath)
+    except OSError:
+        raise ValueError(
+            "In order to set up refy daily you need to use this command as administrator."
+            ' On Linux and Mac OS try putting "sudo" before the command'
+        )
 
 
 @app.command()

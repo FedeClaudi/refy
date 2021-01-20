@@ -1,6 +1,7 @@
 from rich import print
 from rich.console import Console
 import sys
+from loguru import logger
 
 from rich.spinner import Spinner
 from rich.text import Text
@@ -162,10 +163,11 @@ class SimpleQuery:
                 text: str, text to place in the initial segment of the report
                 sugg_title: str, title for the suggestions table
         """
+        logger.debug(f"Saving query to .HTML at: {file_path}")
         summary = self._make_summary(
             text_title=text_title, text=text, sugg_title=sugg_title
         )
 
-        console = Console(record=True)
+        console = Console(record=True, width=170)
         console.print(summary)
         console.save_html(file_path, theme=TERMINAL_THEME)

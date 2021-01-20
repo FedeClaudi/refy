@@ -15,6 +15,7 @@ from refy.settings import (
 
 from loguru import logger
 import sys
+from pathlib import Path
 
 
 def set_logging(level="INFO", path=None):
@@ -22,6 +23,9 @@ def set_logging(level="INFO", path=None):
     logger.add(sys.stdout, level=level)
 
     path = path or str(base_dir / "log.log")
+    if Path(path).exists():
+        Path(path).unlink()
+
     logger.add(path, level="DEBUG")
 
 

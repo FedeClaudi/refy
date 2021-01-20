@@ -6,7 +6,7 @@ import pandas as pd
 
 from loguru import logger
 
-from myterial import orange, amber, pink, light_green
+from myterial import orange, amber, pink, light_green, blue_grey_lighter
 
 from refy.utils import get_authors
 
@@ -159,7 +159,7 @@ class Suggestions:
             show_lines=True,
             expand=False,
             box=None,
-            caption=f"{len(self.suggestions)} papers, recommended by refy :ok_hand:",
+            caption=f"[{blue_grey_lighter}]{len(self.suggestions)} papers, recommended by refy :ok_hand:",
             caption_style="dim",
             padding=(0, 1),
         )
@@ -185,14 +185,16 @@ class Suggestions:
         # add papers to table
         for i, paper in self.suggestions.iterrows():
             if paper.score:
-                score = "[dim]" + str(round(paper["score"], 3))
+                score = f"[{blue_grey_lighter} dim]" + str(
+                    round(paper["score"], 3)
+                )
             else:
                 score = ""
 
             if paper.doi:
-                url = f"[link=https://doi.org/{paper.doi}]{paper.doi}[/]"
+                url = f"[{blue_grey_lighter}][link=https://doi.org/{paper.doi}]{paper.doi}[/]"
             else:
-                url = f"[link={paper.url}]link[/]"
+                url = f"[{blue_grey_lighter}][link={paper.url}]link[/]"
 
             authors = get_authors(paper)
             if len(authors) > 1:
