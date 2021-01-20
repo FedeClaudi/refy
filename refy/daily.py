@@ -206,13 +206,24 @@ def setup(user, python_path, bibfile, N, outputpath):
             N: int. Number of suggestions to return
             outputpath: str. Path to .HTML to save the results to
     """
-    # prepare command
+    if not Path(python_path).exists():
+        raise FileNotFoundError(
+            f"Could not find .bib file to use for daily searches: {python_path}"
+        )
+
+    # get refy installation path
     refy_folder = Path(__file__).parent
+    assert (refy_folder / "cli.py").exists(), "could not find refy's cli file"
     logger.debug(f"Refy package folder: {refy_folder}")
 
+    # get out file
+    out_file = base_dir / "daily.txt"
+    if out_file.exists():
+        out_file.unlink()
+
+    # create crontab command
     command = f"{python_path} {refy_folder}/cli.py daily {bibfile} -N {N} -o {outputpath}"
-    command += f" >> {base_dir}/daily.txt"  # output file for crontab
-    assert (refy_folder / "cli.py").exists(), "could not find cli file"
+    command += f" >> {out_file}"  # output file for crontab
 
     # setup cronotab job
     logger.debug(f"Setting up crontab for user: {user}")
@@ -220,7 +231,7 @@ def setup(user, python_path, bibfile, N, outputpath):
 
     logger.debug(f"setting up crontab jobs with command:\n     {command}")
     job = cron.new(command=command, comment="refy_daily")
-    job.minute.every(5)
+    job.setall("* 10 * * *")  # run at 10 AM every day
     cron.write()
 
     jobs = "\n".join([str(c) for c in cron])

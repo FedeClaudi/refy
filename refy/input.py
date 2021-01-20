@@ -38,8 +38,8 @@ def load_user_input(fpath):
 
     # Clean up data
     data = pd.DataFrame(data.values())
-    data = data[["title", "journal", "author", "abstract", "doi"]]
-    data.columns = ["title", "journal", "authors", "abstract", "doi"]
+    data = data[["title", "journal", "author", "abstract"]]
+    data.columns = ["title", "journal", "authors", "abstract"]
     data["id"] = data["title"]
 
     # keep only papers with abstract

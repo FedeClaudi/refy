@@ -86,9 +86,9 @@ class Suggestions:
             ~self.suggestions.title.isin(user_papers.title)
         ]
 
-        self.suggestions = self.suggestions.loc[
-            ~self.suggestions.doi.isin(user_papers.doi)
-        ]
+        # self.suggestions = self.suggestions.loc[
+        #     ~self.suggestions.doi.isin(user_papers.doi)
+        # ]
 
         self._reset_idx()
 
