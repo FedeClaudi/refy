@@ -14,8 +14,11 @@ def daily(
         ..., help="Path to .bib file with user papers metadata"
     ),
     N: int = typer.Option(10, "-N", help="number of recomendations to return"),
-    outputpath: str = typer.Option(
+    html_path: str = typer.Option(
         None, "-o", help="Path to .html file where to save suggestions"
+    ),
+    debug: bool = typer.Option(
+        False, "-debug", "--d", help="set debug mode ON/OFF"
     ),
 ):
     """
@@ -24,14 +27,15 @@ def daily(
 
     # set specific log file
     logpath = refy.base_dir / "daily.log"
+    lvl = "DEBUG" if debug else "INFO"
     try:
-        refy.set_logging(level="DEBUG", path=logpath)
+        refy.set_logging(level=lvl, path=logpath)
     except:
-        refy.set_logging(level="DEBUG")
+        refy.set_logging(level=lvl)
 
     # run daily search
     try:
-        refy.Daily().run(filepath, html_path=outputpath, N=N)
+        refy.Daily().run(filepath, html_path=html_path, N=N)
     except Exception as e:
         logger.warning(f"Failed to run daily search, error: {e}")
 
@@ -46,7 +50,7 @@ def setup_daily(
         ..., help="Path to .bib file with user papers metadata"
     ),
     N: int = typer.Option(10, "-N", help="number of recomendations to return"),
-    outputpath: str = typer.Option(
+    html_path: str = typer.Option(
         None, "-o", help="Path to .html file where to save suggestions"
     ),
 ):
@@ -62,7 +66,7 @@ def setup_daily(
 
     # setup daily
     try:
-        refy.daily.setup(user, python_path, filepath, N, outputpath)
+        refy.daily.setup(user, python_path, filepath, N, html_path)
     except OSError:
         raise ValueError(
             "In order to set up refy daily you need to use this command as administrator."
@@ -90,8 +94,11 @@ def suggest(
     to: int = typer.Option(
         None, "-to", help="Only keep papers published before TO"
     ),
-    savepath: str = typer.Option(
-        None, "-save-path", "--s", help="Save suggestions to .CSV file"
+    csv_path: str = typer.Option(
+        None, "-csv-path", help="Save suggestions to .CSV file"
+    ),
+    html_path: str = typer.Option(
+        None, "-html-path", help="Save suggestions to .HTML file"
     ),
     debug: bool = typer.Option(
         False, "-debug", "--d", help="set debug mode ON/OFF"
@@ -107,8 +114,9 @@ def suggest(
                 only papers more recent than the given year are kept for recomendation
             to: int or None. If an int is passed it must be a year,
                 only papers older than that are kept for recomendation
-            savepath: str, Path. Path pointing to a .csv file where the recomendations
+            csv_path: str, Path. Path pointing to a .csv file where the recomendations
                 will be saved
+            html_path: str, Path. Path to save formatted suggestions as HTML content
             debug: bool. If true refy is set in debug mode and more info are printed
     """
     if debug:
@@ -117,7 +125,12 @@ def suggest(
     logger.debug(f"CLI: suggest for: {filepath}")
 
     refy.suggest(
-        filepath, N=N, since=since, to=to, savepath=savepath,
+        filepath,
+        N=N,
+        since=since,
+        to=to,
+        csv_path=csv_path,
+        html_path=html_path,
     )
 
 
@@ -131,8 +144,8 @@ def query(
     to: int = typer.Option(
         None, "-to", help="Only keep papers published before TO"
     ),
-    savepath: str = typer.Option(
-        None, "-save-path", "--s", help="Save suggestions to file"
+    csv_path: str = typer.Option(
+        None, "-csv-path", help="Save suggestions to file"
     ),
     debug: bool = typer.Option(
         False, "-debug", "--d", help="set debug mode ON/OFF"
@@ -149,7 +162,7 @@ def query(
                 only papers more recent than the given year are kept for recomendation
             to: int or None. If an int is passed it must be a year,
                 only papers older than that are kept for recomendation
-            savepath: str, Path. Path pointing to a .csv file where the recomendations
+            csv_path: str, Path. Path pointing to a .csv file where the recomendations
                 will be saved
             debug: bool. If true refy is set in debug mode and more info are printed
     """
@@ -157,7 +170,7 @@ def query(
         refy.set_logging("DEBUG")
 
     refy.query(
-        input_string, N=N, since=since, to=to, savepath=savepath,
+        input_string, N=N, since=since, to=to, csv_path=csv_path,
     )
 
 
@@ -171,8 +184,8 @@ def author(
     to: int = typer.Option(
         None, "-to", help="Only keep papers published before TO"
     ),
-    savepath: str = typer.Option(
-        None, "-save-path", "--s", help="Save suggestions to file"
+    csv_path: str = typer.Option(
+        None, "-csv-path", help="Save suggestions to file"
     ),
     debug: bool = typer.Option(
         False, "-debug", "--d", help="set debug mode ON/OFF"
@@ -189,7 +202,7 @@ def author(
                 only papers more recent than the given year are kept for recomendation
             to: int or None. If an int is passed it must be a year,
                 only papers older than that are kept for recomendation
-            savepath: str, Path. Path pointing to a .csv file where the recomendations
+            csv_path: str, Path. Path pointing to a .csv file where the recomendations
                 will be saved
             debug: bool. If true refy is set in debug mode and more info are printed
     """
@@ -197,7 +210,7 @@ def author(
         refy.set_logging("DEBUG")
 
     refy.query_author(
-        author, N=N, since=since, to=to, savepath=savepath,
+        author, N=N, since=since, to=to, csv_path=csv_path,
     )
 
 

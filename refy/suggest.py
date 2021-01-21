@@ -1,7 +1,5 @@
 from loguru import logger
-from rich import print
 import sys
-from pathlib import Path
 
 from pyinspect.panels import Report
 from myterial import orange, salmon, orange_dark
@@ -11,16 +9,23 @@ from refy.input import load_user_input
 from refy.database import load_database
 from refy.progress import suggest_progress
 from refy import doc2vec as d2v
-from refy import download
 from refy.suggestions import Suggestions
-from refy.keywords import Keywords, get_keywords_from_text
 from refy.authors import Authors
+from refy._query import SimpleQuery
 
 
-class suggest:
+class suggest(SimpleQuery):
     suggestions_per_paper = 100  # for each paper find N suggestions
 
-    def __init__(self, user_papers, N=20, since=None, to=None, savepath=None):
+    def __init__(
+        self,
+        user_papers,
+        N=20,
+        since=None,
+        to=None,
+        csv_path=None,
+        html_path=None,
+    ):
         """
             Suggest new relevant papers based on the user's
             library.
@@ -32,17 +37,15 @@ class suggest:
                     only papers more recent than the given year are kept for recomendation
                 to: int or None. If an int is passed it must be a year,
                     only papers older than that are kept for recomendation
-                savepath: str, Path. Path pointing to a .csv file where the recomendations
+                csv_path: str, Path. Path pointing to a .csv file where the recomendations
                     will be saved
+                html_path: str, Path. Path to a .html file 
+                    where to save the output
         """
-        download.check_files()
+        SimpleQuery.__init__(self, csv_path=csv_path, html_path=html_path)
 
         self.since = since
         self.to = to
-        if savepath:
-            self.savepath = Path(savepath)
-        else:
-            self.savepath = savepath
 
         with suggest_progress as progress:
             self.progress = progress
@@ -59,10 +62,15 @@ class suggest:
 
             # get keywords
             self._progress("Extracting keywords from data")
-            self.get_keywords()
+            self.get_keywords(self.user_papers)
 
             # get suggestions
             self.get_suggestions(N=N)
+        self.print()
+
+        # save to .csv and .HTML file
+        self.to_csv()
+        self.to_html()
 
     @property
     def n_papers(self):
@@ -168,8 +176,6 @@ class suggest:
             Arguments:
                 N: int, number of best papers to keep
 
-            Returns:
-                suggestions: Suggestions with suggested papers sorted by score
         """
         logger.debug(f"Getting suggestions for {self.n_user_papers} papers")
 
@@ -206,46 +212,17 @@ class suggest:
 
         self.suggestions.truncate(N)
 
-        # save to file
-        if self.savepath:
-            self.suggestions.to_csv(self.savepath)
-
-        # conclusion
-        self.summarize()
-        return self.suggestions
-
-    def get_keywords(self):
+    def _make_summary(self, *args, **kwargs):
         """
-            Extracts set of keywords that best represent the user papers.
-            These can be used to improve the search and to improve the
-            print out from the query. 
-        """
-        task = self.progress.add_task(
-            "Finding keywords...",
-            start=True,
-            total=self.n_user_papers,
-            current_task="analyzing...",
-        )
+            Creates a summary with suggestions, authors
+            and keywords metadata etc. 
 
-        keywords = {}
-        for n, (idx, user_paper) in enumerate(self.user_papers.iterrows()):
-            kwds = get_keywords_from_text(user_paper.abstract, N=10)
+            Arguments:
+                *args, **kwargs: not used, for compatibility with
+                    SimpleQuery.print's compatibility
 
-            for m, kw in enumerate(kwds):
-                if kw in keywords.keys():
-                    keywords[kw] += 10 - m
-                else:
-                    keywords[kw] = 1
-
-            self.progress.update(task, completed=n)
-        self.progress.remove_task(task)
-
-        # sort keywords
-        self.keywords = Keywords(keywords)
-
-    def summarize(self):
-        """
-            Print results of query: keywords, recomended papers etc.
+            Returns:
+                summary: Summary with all information about the results
         """
         # create a list of most recomended authors
         authors = Authors(self.suggestions.authors)
@@ -276,9 +253,7 @@ class suggest:
         summary.add(authors.to_table(), "rich")
         summary.spacer()
 
-        # print
-        print(summary)
-        print("")
+        return summary
 
 
 if __name__ == "__main__":
@@ -288,4 +263,4 @@ if __name__ == "__main__":
 
     refy.set_logging("DEBUG")
 
-    suggest(refy.settings.example_path, N=25, since=2018)
+    suggest(refy.settings.example_path, N=25, since=2018).print()

@@ -31,28 +31,22 @@ def cosine(v1, v2):
 
 
 class Daily(SimpleQuery):
-    def __init__(self):
+    def __init__(self, user_data_filepath, html_path=None, N=10):
         """
             Get biorxiv preprints released in the last 24 hours
-            and select the top 10 matches for user inputs
-        """
-        SimpleQuery.__init__(self)
-        logger.debug("Launching daily biorxiv check")
-        self.model = D2V()
-
-    def run(self, user_data_filepath, html_path=None, N=10):
-        """
-            Runs the daily search and prints/saves the results
-
+            and select the top N matches based on user inputs
+            
             Arguments:
-                run daily: fetch from biorxiv, extract
-                best matches and print results.
+                user_data_filepath: str, Path. Path to user's .bib fole
                 html_path: str, Path. Path to a .html file 
                     where to save the output
                 N: int. Number of papers to return
         """
-        logger.debug("\n\nStarting daily search")
+        logger.debug("\n\nStarting biorxiv daily search")
         self.start(text="Getting daily suggestions")
+
+        SimpleQuery.__init__(self, html_path=html_path)
+        self.model = D2V()
 
         # get data from biorxiv
         logger.debug("Getting data from biorxiv")
@@ -78,6 +72,10 @@ class Daily(SimpleQuery):
         # get suggestions
         logger.debug("Retuning suggestions")
         self.get_suggestions(N)
+
+        # get keyords
+        logger.debug("Getting keywords")
+        self.get_keywords(self.user_papers)
         self.stop()
 
         # print
@@ -87,11 +85,9 @@ class Daily(SimpleQuery):
         )
 
         # save to html
-        if html_path:
-            self.to_html(
-                html_path,
-                text=f"[{orange}]:calendar:  Daily suggestions for: [{green} bold]{today}\n\n",
-            )
+        self.to_html(
+            text=f"[{orange}]:calendar:  Daily suggestions for: [{green} bold]{today}\n\n",
+        )
 
     def clean(self, papers):
         """
@@ -222,7 +218,7 @@ def setup(user, python_path, bibfile, N, outputpath):
         out_file.unlink()
 
     # create crontab command
-    command = f"{python_path} {refy_folder}/cli.py daily {bibfile} -N {N} -o {outputpath}"
+    command = f"{python_path} {refy_folder}/cli.py daily {bibfile} -N {N} -o {outputpath} --d"
     command += f" >> {out_file}"  # output file for crontab
 
     # setup cronotab job
@@ -251,17 +247,20 @@ def stop(user):
     logger.debug(f"Crontab jobs:\n{jobs}")
 
 
+# TODO get keywords + highlighting because why not
+# TODO suggest to HTML?
+
 if __name__ == "__main__":
     import refy
 
     refy.set_logging("DEBUG")
-    # d = Daily().run(refy.settings.example_path, html_path="test.html")
+    d = Daily(refy.settings.example_path, html_path="test.html")
 
-    setup(
-        "federico claudi",
-        "/Users/federicoclaudi/miniconda3/envs/ref/bin/python",
-        "test.bib",
-    )
+    # setup(
+    #     "federico claudi",
+    #     "/Users/federicoclaudi/miniconda3/envs/ref/bin/python",
+    #     "test.bib",
+    # )
     # stop("federico claudi")
 
     """

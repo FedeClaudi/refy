@@ -10,7 +10,7 @@ def test_suggest_save():
         save_path.unlink()
 
     # get suggestions
-    suggestions = suggest(example_path, N=20, savepath=save_path).suggestions
+    suggestions = suggest(example_path, N=20, csv_path=save_path).suggestions
 
     # check suggestions
     assert len(suggestions) == 20, "wrong number of sugg"

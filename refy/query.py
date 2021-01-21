@@ -13,7 +13,7 @@ from refy._query import SimpleQuery
 
 
 class query_author(SimpleQuery):
-    def __init__(self, *authors, N=20, since=None, to=None, savepath=None):
+    def __init__(self, *authors, N=20, since=None, to=None, csv_path=None):
         """
             Print all authors in the database from a list of authors
 
@@ -24,10 +24,10 @@ class query_author(SimpleQuery):
                     only papers more recent than the given year are kept for recomendation
                 to: int or None. If an int is passed it must be a year,
                     only papers older than that are kept for recomendation
-                savepath: str, Path. Path pointing to a .csv file where the recomendations
+                csv_path: str, Path. Path pointing to a .csv file where the recomendations
                     will be saved
         """
-        SimpleQuery.__init__(self)
+        SimpleQuery.__init__(self, csv_path=csv_path)
         self.start("extracting author's publications")
 
         logger.debug(
@@ -36,17 +36,12 @@ class query_author(SimpleQuery):
 
         # load and clean database
         papers = load_database()
-        # papers['stripped_authors'] = papers.authors.str.replace(r'[^\w\s]', ' ', regex=True)
 
         # select papers with authors
         for author in authors:
             # remove initials and punctuation from author
             author = author.strip(string.punctuation)
             author = re.sub(" [A-Z]*", " ", author).strip()
-
-            # make sure there's a space after very name
-            # if len(author.split(' ')) == 1:
-            #     author += ' '
 
             # select papers
             logger.debug(f'Matching author with strin: "{author}"')
@@ -68,18 +63,18 @@ class query_author(SimpleQuery):
 
         # print
         self.stop()
+
         ax = " ".join(authors)
         self.print(
             sugg_title=f'Suggestions for author(s): [bold {orange}]"{ax}"\n'
         )
 
         # save to file
-        if savepath:
-            self.suggestions.to_csv(savepath)
+        self.to_csv()
 
 
 class query(SimpleQuery):
-    def __init__(self, input_string, N=20, since=None, to=None, savepath=None):
+    def __init__(self, input_string, N=20, since=None, to=None, csv_path=None):
         """
             Finds recomendations based on a single input string (with keywords,
             or a paper abstract or whatever) instead of an input .bib file
@@ -91,14 +86,14 @@ class query(SimpleQuery):
                     only papers more recent than the given year are kept for recomendation
                 to: int or None. If an int is passed it must be a year,
                     only papers older than that are kept for recomendation
-                savepath: str, Path. Path pointing to a .csv file where the recomendations
+                csv_path: str, Path. Path pointing to a .csv file where the recomendations
                     will be saved
 
             Returns:
                 suggestions: pd.DataFrame of N recomended papers
         """
         logger.debug("suggest one")
-        SimpleQuery.__init__(self)
+        SimpleQuery.__init__(self, csv_path=csv_path)
         self.start("Finding recomended papers")
 
         # load database and abstracts
@@ -129,8 +124,7 @@ class query(SimpleQuery):
         )
 
         # save to file
-        if savepath:
-            self.suggestions.to_csv(savepath)
+        self.to_csv()
 
 
 if __name__ == "__main__":

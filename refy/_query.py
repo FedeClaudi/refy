@@ -16,6 +16,7 @@ sys.path.append("./")
 from refy import download
 from refy.suggestions import Suggestions
 from refy.authors import Authors
+from refy.keywords import Keywords, get_keywords_from_text
 
 
 # define a theme for HTML exports
@@ -47,12 +48,22 @@ TERMINAL_THEME = TerminalTheme(
 
 
 class SimpleQuery:
-    """
-        Handles printing of simple queryies(i.e. not from .bib files) results
-    """
+    def __init__(self, csv_path=None, html_path=None):
+        """
+            Base class handling the printing and saving of 
+            results from queries and suggest calls. 
 
-    def __init__(self):
+            Arguments:
+                csv_path: str, Path. Path to a .csv where to save
+                    the results
+                html_path: str, Path. Path to a .HTML to save formatted
+                    results to.
+        """
+        # get all fils
         download.check_files()
+
+        self.csv_path = csv_path
+        self.html_path = html_path
 
     def __rich_console__(self, *args, **kwargs):
         "Simple query"
@@ -110,6 +121,12 @@ class SimpleQuery:
             Returns:
                 summary: pyinspect.Report with content
         """
+        # try to get an highlighter
+        try:
+            highlighter = self.keywords.get_highlighter()
+        except:
+            highlighter = None
+
         # print summary
         summary = Report(dim=orange)
         summary.width = 160
@@ -124,7 +141,7 @@ class SimpleQuery:
         if sugg_title:
             summary.add(sugg_title)
         summary.add(
-            self.suggestions.to_table(), "rich",
+            self.suggestions.to_table(highlighter=highlighter), "rich",
         )
         summary.spacer()
         summary.line(orange_dark)
@@ -136,6 +153,28 @@ class SimpleQuery:
             summary.add(self.authors.to_table(), "rich")
 
         return summary
+
+    def get_keywords(self, papers):
+        """
+            Extracts set of keywords that best represent the user papers.
+            These can be used to improve the search and to improve the
+            print out from the query. 
+
+            Arguments:
+                papers: pd.DataFrame with papers metadata
+        """
+        keywords = {}
+        for n, (idx, user_paper) in enumerate(papers.iterrows()):
+            kwds = get_keywords_from_text(user_paper.abstract, N=10)
+
+            for m, kw in enumerate(kwds):
+                if kw in keywords.keys():
+                    keywords[kw] += 10 - m
+                else:
+                    keywords[kw] = 1
+
+        # sort keywords
+        self.keywords = Keywords(keywords)
 
     def print(self, text_title=None, text=None, sugg_title=""):
         """
@@ -153,7 +192,7 @@ class SimpleQuery:
         print(summary)
         print("")
 
-    def to_html(self, file_path, text_title=None, text=None, sugg_title=""):
+    def to_html(self, text_title=None, text=None, sugg_title=""):
         """
             Saves the summary view of the query's content to an html file
 
@@ -163,11 +202,21 @@ class SimpleQuery:
                 text: str, text to place in the initial segment of the report
                 sugg_title: str, title for the suggestions table
         """
-        logger.debug(f"Saving query to .HTML at: {file_path}")
+        if self.html_path is None:
+            return
+
+        logger.debug(f"Saving query to .HTML at: {self.html_path}")
         summary = self._make_summary(
             text_title=text_title, text=text, sugg_title=sugg_title
         )
 
         console = Console(record=True, width=170)
         console.print(summary)
-        console.save_html(file_path, theme=TERMINAL_THEME)
+        console.save_html(self.html_path, theme=TERMINAL_THEME)
+
+    def to_csv(self):
+        """
+            Saves suggestions to a .csv file
+        """
+        if self.csv_path is not None:
+            self.suggestions.to_csv(self.csv_path)
