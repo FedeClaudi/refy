@@ -1,5 +1,5 @@
 # refy
-A scientific papers recomendation tool.
+A scientific papers recommendation tool.
 
 ## Overview
 `refy` leverages Natural Langual Processing (NLP) machine learning tools to find new papers that might be relevant given the ones that you've read already. 
@@ -13,7 +13,7 @@ Most currently available software is limited in two key ways:
 1. Tools like [meta.org](https://www.meta.org/) rely on keywords, but keywords (e.g. computational neuroscience, Parkinson's Disease) are often overly general. As a result of that you have to sift through a lot irrelevant literature before you find something interesting
 2. Other tools like [connected papers](https://www.connectedpapers.com/) only work with one input paper at the time: you give it the title of a paper you've read and they give you suggestions. This is limiting: any software that can analyse **all papers you've read** can use a lot more information to find new papers that match more closely your interests.
 
-This is what `refy` is for: **`refy` analyzes the abstracts of several papers of yours and matches them agaist a database of almost ONE MILLION paper abstracts**. By using many input papers at once `refy` has a lot more information at its disposal which (hopefully) means that it can better recomend relevant papers. More details about the database used by `refy` can be found at the bottom of this document. 
+This is what `refy` is for: **`refy` analyzes the abstracts of several papers of yours and matches them agaist a database of almost ONE MILLION paper abstracts**. By using many input papers at once `refy` has a lot more information at its disposal which (hopefully) means that it can better recommend relevant papers. More details about the database used by `refy` can be found at the bottom of this document. 
 
 >**Disclaimer:** The database used by `refy` is focused on neuroscience papers and preprints published in the last 30 years. If you are interested in older papers or work in a different field, please read the instructions below about how to adjust the database to your needs.
 
@@ -52,7 +52,7 @@ For **query mode** you will use the command `refy query STRING`, for `suggest` y
 
  In all cases you can use optional arguments:
 ```shell
-    -N INTEGER            number of recomendations to show  [default: 10]
+    -N INTEGER            number of recommendations to show  [default: 10]
     -since INTEGER        Only keep papers published after SINCE
     -to INTEGER           Only keep papers published before TO
     -save-path, --s TEXT  Save suggestions to file
@@ -66,7 +66,7 @@ refy query "locomotion control brainstem" --N 100 --since 2015 --to 2018 --s ref
 Will show 100 suggested papers published between 2015 and 2018 related to locomotrion control and will save the results to `refs.csv`.
 Similarly `refy author Carandini --N 20 --d` will show 20 papers from "Carandini" and print out debug information in the process.
 
->**Note:** `suggest` mode is much more powerful and hence it's the recomended way for finding new literature, however `query` allows you to quickly look up new papers without having to createa a `.bib` field. `author` mode can be useful to find other authors that have published with a given author of interest.
+>**Note:** `suggest` mode is much more powerful and hence it's the recommended way for finding new literature, however `query` allows you to quickly look up new papers without having to createa a `.bib` field. `author` mode can be useful to find other authors that have published with a given author of interest.
 
 >**Note:** in `suggest` mode, the content of your `.bib` file **must** include papers abstracts. **Only papers with abstracts** will be used for the analysis. Your `.bib` file entries should look like this:
 ```
@@ -98,8 +98,8 @@ Similarly `refy author Carandini --N 20 --d` will show 20 papers from "Carandini
 > **hint:** if you use reference managers like zotero or paperpile you can easily export bibtext data about your papers
 
 `refy` has two kind of outputs:
-1. It will print to terminal a list of N recomended paper, sorted by their recomendation score. It will also show keywords that appear in your input papers and the authors that came up most frequently in your recomendations. See the figure at the top of this document for reference.
-2. Optionally, `refy` can save the list of recomended paper to ` .csv` file so that you may explore these at your leasure.
+1. It will print to terminal a list of N recommended paper, sorted by their recommendation score. It will also show keywords that appear in your input papers and the authors that came up most frequently in your recommendations. See the figure at the top of this document for reference.
+2. Optionally, `refy` can save the list of recommended paper to ` .csv` file so that you may explore these at your leasure.
 
 > **hint: ** the DOIs on the right of the report are working links (if you terminal supports links)!
 
@@ -117,12 +117,12 @@ This section explains how `refy` works. If you just want to use `refy` and don't
 
 `refy` uses NLP algorithms to estimate semantic similarity across papers based on the content of their abstracts. In particular, it uses [`Doc2Vec`](https://medium.com/wisio/a-gentle-introduction-to-doc2vec-db3e8c0cce5e) which is an adaptation of `Word2Vec`, a model that embeddings of words in which semantically similar words are closer in the embedding space than semantically dissimilar words are. `Dov2Vec` expands `Word2Vec` to learn vector embedding of entire documents.
 
-The `Doc2Vec` model used here is train on the entire corpus of almost one million papers. When it comes finding recomendations for your papers, `refy` uses `Doc2Vec` to create a vector representation of your paper and find the N closest vectors which, hopefully, are papers that are similar to yours. 
+The `Doc2Vec` model used here is train on the entire corpus of almost one million papers. When it comes finding recommendations for your papers, `refy` uses `Doc2Vec` to create a vector representation of your paper and find the N closest vectors which, hopefully, are papers that are similar to yours. 
 
-This operation is repeated for each paper in your `.bib` file and then recomendations are pooled and scored: the papers that scored highest for the most number of input papers will be the most strongly recomended ones. 
+This operation is repeated for each paper in your `.bib` file and then recommendations are pooled and scored: the papers that scored highest for the most number of input papers will be the most strongly recommended ones. 
 
 ## Database
-`refy` uses a curated database of about one million papers metadata to recomend literature for you. TJe data come from two sources:
+`refy` uses a curated database of about one million papers metadata to recommend literature for you. TJe data come from two sources:
 * [semantic scholar's Open Corpus](https://www.semanticscholar.org/paper/Construction-of-the-Literature-Graph-in-Semantic-Ammar-Groeneveld/649def34f8be52c8b66281af98ae884c09aef38b) 
 * [biorxiv](https://api.biorxiv.org/)
 
