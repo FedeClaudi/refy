@@ -247,9 +247,6 @@ def stop(user):
     logger.debug(f"Crontab jobs:\n{jobs}")
 
 
-# TODO get keywords + highlighting because why not
-# TODO suggest to HTML?
-
 if __name__ == "__main__":
     import refy
 

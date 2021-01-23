@@ -35,7 +35,7 @@ def daily(
 
     # run daily search
     try:
-        refy.Daily().run(filepath, html_path=html_path, N=N)
+        refy.Daily(filepath, html_path=html_path, N=N)
     except Exception as e:
         logger.warning(f"Failed to run daily search, error: {e}")
 

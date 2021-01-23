@@ -32,7 +32,14 @@ remote_url_base = "https://gin.g-node.org/FedeClaudi/refy/raw/master/"
 
 # ----------------------------- database settings ---------------------------- #
 # when creating condensed database, keep only papers in these fields
-fields_of_study = ("Biology", "Neuroscience", "neuroscience", "Medicine")
+fields_of_study = (
+    "biology",
+    "neuroscience",
+    "medicine",
+    "machine learning",
+    "deep learning",
+    "robotics",
+)
 keywords = (
     "neuro",
     "neuron",
@@ -49,6 +56,12 @@ keywords = (
     "dendrite",
     "dendritic",
     "behaviour",
+    "robotics",
+    "artificial agent",
+    "reinforcement learning",
+    "agent",
+    "computational",
+    "dynamics",
 )  # only keep papers that have these keywords in the abstract
 
 

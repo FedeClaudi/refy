@@ -71,7 +71,9 @@ def make_biorxiv_database():
             papers = papers[
                 ["doi", "title", "authors", "date", "category", "abstract"]
             ]
-            papers = papers.loc[papers.category.isin(fields_of_study)]
+            papers = papers.loc[
+                papers.category.str.lower().isin(fields_of_study)
+            ]
 
             # fix ID
             papers["id"] = papers["doi"]

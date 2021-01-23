@@ -48,7 +48,7 @@ def exclude(entry):
             exclude: bool. True if the entry fails any of the criteria
     """
     # keep only entries in relevant fields
-    if not isin(entry["fieldsOfStudy"], fields_of_study):
+    if not isin([l.lower() for l in entry["fieldsOfStudy"]], fields_of_study):
         return True
 
     # Keep only recent papers

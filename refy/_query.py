@@ -64,6 +64,7 @@ class SimpleQuery:
 
         self.csv_path = csv_path
         self.html_path = html_path
+        self.keywords = None
 
     def __rich_console__(self, *args, **kwargs):
         "Simple query"
@@ -136,6 +137,14 @@ class SimpleQuery:
             if text_title is not None:
                 summary.add(text_title)
             summary.add(text)
+
+        # keywords
+        if self.keywords is not None:
+            summary.add(f"[bold {salmon}]:mag:  [u]keywords\n")
+            summary.add(self.keywords.to_table(), "rich")
+            summary.spacer()
+            summary.line(orange_dark)
+            summary.spacer()
 
         # suggestions
         if sugg_title:
