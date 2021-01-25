@@ -1,8 +1,6 @@
 from loguru import logger
 from rich import print
 import sys
-import re
-import string
 
 from myterial import orange, salmon, amber_light
 
@@ -13,12 +11,12 @@ from refy._query import SimpleQuery
 
 
 class query_author(SimpleQuery):
-    def __init__(self, *authors, N=20, since=None, to=None, csv_path=None):
+    def __init__(self, author, N=20, since=None, to=None, csv_path=None):
         """
             Print all authors in the database from a list of authors
 
             Arguments:
-                authors: variable number of str with author names
+                authors: str with author name
                 N: int. Number of papers to suggest
                 since: int or None. If an int is passed it must be a year,
                     only papers more recent than the given year are kept for recomendation
@@ -27,33 +25,36 @@ class query_author(SimpleQuery):
                 csv_path: str, Path. Path pointing to a .csv file where the recomendations
                     will be saved
         """
+
+        def clean(string):
+            for punc in ".,;)(":
+                string = string.replace(punc, "")
+            return string
+
         SimpleQuery.__init__(self, csv_path=csv_path)
         self.start("extracting author's publications")
 
-        logger.debug(
-            f"Fining papers by author(s) with {len(authors)} author(s): {authors}"
-        )
+        logger.debug(f"Fining papers by from author: '{author}'")
 
         # load and clean database
         papers = load_database()
+        papers["clean_authors"] = papers.authors.apply(clean)
 
-        # select papers with authors
-        for author in authors:
-            # remove initials and punctuation from author
-            author = author.strip(string.punctuation)
-            author = re.sub(" [A-Z]*", " ", author).strip()
-
-            # select papers
-            logger.debug(f'Matching author with strin: "{author}"')
+        # select papers
+        for auth in author.split(" "):
             papers = papers.loc[
-                papers.authors.str.contains(author, case=False)
+                papers.clean_authors.str.contains(
+                    " " + clean(auth) + " ", case=False
+                )
             ]
 
-        logger.debug(f"Found {len(papers)} papers for authors")
+        logger.debug(
+            f"Found {len(papers)} papers for author's cleaned name: {author}"
+        )
 
         if papers.empty:
             print(
-                f"\n[{salmon}]Could not find any papers for author(s): {authors}"
+                f"\n[{salmon}]Could not find any papers for author: {author}"
             )
             self.stop()
             return
@@ -63,10 +64,8 @@ class query_author(SimpleQuery):
 
         # print
         self.stop()
-
-        ax = " ".join(authors)
         self.print(
-            sugg_title=f'Suggestions for author(s): [bold {orange}]"{ax}"\n'
+            sugg_title=f'Suggestions for author(s): [bold {orange}]"{author}"\n'
         )
 
         # save to file
@@ -139,9 +138,9 @@ if __name__ == "__main__":
     #     "neuron gene expression", N=20, since=2015, to=2018,
     # )
 
-    query_author("claudi")
-    query_author("Gary Stacey")
-    query_author("Gary  Stacey")
-    query_author("Carandini M.")
+    query_author("Branco Tiago")
+    # query_author("Gary Stacey")
+    # query_author("Gary  Stacey")
+    # query_author("Carandini M.")
 
-    query_author("carandini")
+    # query_author("carandini")
