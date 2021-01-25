@@ -43,10 +43,11 @@ which should print something like:
 
 >**Note:** the first time you use `refy` it will have to download several files (which you can see [here](https://gin.g-node.org/FedeClaudi/refy/src/master/)) with data it needs to work. This should only take a few minuts and it will take up about 3GB of your hard disk space.
 
-You can use `refy` in three modes:
+You can use `refy` in four modes:
 1. In `query` mode you can find papers relevant for a given input string (e.g. `locomotion mouse brainstem`)
 2. In `suggest` mode you give `refy` a `.bib` [bibtext file](https://en.wikipedia.org/wiki/BibTeX) with metadata about as many publications as you want. `refy` will use this information to find papers relevant across all of your input papers.
 3. In`author` mode you can look for papers from an author
+4. `daily` suggests relevant papers from those released on biorxiv.org in the last 24 hours (see below)
 
 For **query mode** you will use the command `refy query STRING`, for `suggest` you'd use `refy suggest PATH` and for `author` you'd use `refy author SURNAME`.
 
@@ -102,6 +103,18 @@ Similarly `refy author Carandini --N 20 --d` will show 20 papers from "Carandini
 2. Optionally, `refy` can save the list of recommended paper to ` .csv` file so that you may explore these at your leasure.
 
 > **hint: ** the DOIs on the right of the report are working links (if you terminal supports links)!
+
+### Daily
+Hard to keep up with all the preprints that come out all the time? Fear not, `refy`'s `daily` function is here to help. In your terminal, call `refy daily mybib.bib` and `refy` will recomend papers from those that came out of biorxiv in the last 24 hours. You can use the `-N` argument to specify how many suggestions you'd like to see. 
+
+If you are using Mac or Linux, `refy` has a (still experimental) feature which enables you to run `refy daily` everyday automatically. To do so, call `refy setup-daily` which will create a [crontab](https://en.wikipedia.org/wiki/Cron) job which runs `refy daily` everyday at 10. If you'd like to change the time at which it runs you can edit the crontab job with `crontab -e`.
+
+For `refy setup-daily` to work, you will need to provide your user name, a path to a python executable (which has access to a refy installation), a path to your `.bib` file and then with the `-o` option you can specify a path to a `.html` file. The output of running `refy daily` will be saved as a `.html` file which you can open in your browser. So for instance, this is how I called `refy setup-daily`:
+```
+sudo refy setup-daily "federico claudi" "/Users/federicoclaudi/miniconda3/envs/ref/bin/python" "/Users/federicoclaudi/Documents/Github/referee/test.bib" -N 20 -o /Users/federicoclaudi/Desktop/refy.html
+```
+
+Notice the `sudo` before the command as `crontab` needs to have admin privileges.
 
 ### Scripting
 You can of course access all functionality through normal python scripts. For instance:
