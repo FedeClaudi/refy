@@ -1,5 +1,8 @@
 import json
 import requests
+import subprocess
+import os
+from loguru import logger
 
 
 def isin(l1, l2):
@@ -37,6 +40,26 @@ def get_authors(paper):
 
 
 # --------------------------------- internet --------------------------------- #
+
+
+def open_in_browser(url):
+    """
+        Open an url or .html file in default web browser
+
+        Arguments:
+            url: str, Path. url or .html file
+    """
+    url = str(url)
+
+    try:  # should work on Windows
+        os.startfile(url)
+    except AttributeError:
+        try:  # should work on MacOS and most linux versions
+            subprocess.call(["open", url])
+        except:
+            logger.debug("Could not open URL")
+
+
 def check_internet_connection(
     url="http://www.google.com/", timeout=2, raise_error=True
 ):

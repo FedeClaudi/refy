@@ -12,7 +12,7 @@ from crontab import CronTab
 
 sys.path.append("./")
 
-from refy.utils import check_internet_connection, request
+from refy.utils import check_internet_connection, request, open_in_browser
 from refy.settings import fields_of_study, base_dir
 from refy.input import load_user_input
 from refy._query import SimpleQuery
@@ -87,6 +87,10 @@ class Daily(SimpleQuery):
         self.to_html(
             text=f"[{orange}]:calendar:  Daily suggestions for: [{green} bold]{today}\n\n",
         )
+
+        # open html in browser
+        if self.html_path is not None:
+            open_in_browser(self.html_path)
 
     def clean(self, papers):
         """
@@ -225,7 +229,7 @@ def setup(user, python_path, bibfile, N, outputpath):
 
     logger.debug(f"setting up crontab jobs with command:\n     {command}")
     job = cron.new(command=command, comment="refy_daily")
-    job.setall("* 10 * * *")  # run at 10 AM every day
+    job.setall("* 7 * * *")  # run at 7 AM every day
     cron.write()
 
     jobs = "\n".join([str(c) for c in cron])

@@ -46,7 +46,7 @@ class Highlighter:
 # -------------------------------- get keyword ------------------------------- #
 
 
-def get_keywords_from_text(text, N):
+def get_keywords_from_text(text, N, **kwargs):
     """
         Returns a list of N keywords extracted from a string of text
 
@@ -57,7 +57,7 @@ def get_keywords_from_text(text, N):
         Returns:
             keywords: list of str of keywords
     """
-    return summarization.keywords(text, words=N, split=True)
+    return summarization.keywords(text, words=N, split=True, **kwargs)
 
 
 # ---------------------------------------------------------------------------- #
