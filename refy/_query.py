@@ -75,7 +75,7 @@ class SimpleQuery:
     def __repr__(self):
         "Simple query"
 
-    def fill(self, papers, N, since, to):
+    def fill(self, papers, N, since, to, ignore_authors=False):
         """
             Given a dataframe of papers and some arguments creates and 
             stores an instance of Suggestions and Authors
@@ -87,6 +87,7 @@ class SimpleQuery:
                     only papers more recent than the given year are kept for recomendation
                 to: int or None. If an int is passed it must be a year,
                     only papers older than that are kept for recomendation
+                ignore_authors: bool. If true the authors information is not extracted
         """
         # create suggestions
         self.suggestions = Suggestions(papers)
@@ -94,7 +95,10 @@ class SimpleQuery:
         self.suggestions.truncate(N)
 
         # get authors
-        self.authors = Authors(self.suggestions.get_authors())
+        if ignore_authors:
+            self.authors = []
+        else:
+            self.authors = Authors(self.suggestions.get_authors())
 
     def start(self, text):
         """ starts a spinner """
@@ -152,12 +156,13 @@ class SimpleQuery:
         summary.add(
             self.suggestions.to_table(highlighter=highlighter), "rich",
         )
-        summary.spacer()
-        summary.line(orange_dark)
-        summary.spacer()
 
         # authors
         if len(self.authors):
+            summary.spacer()
+            summary.line(orange_dark)
+            summary.spacer()
+
             summary.add(f"[bold {salmon}]:lab_coat:  [u]top authors\n")
             summary.add(self.authors.to_table(), "rich")
 

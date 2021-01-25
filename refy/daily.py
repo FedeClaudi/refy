@@ -16,7 +16,6 @@ from refy.utils import check_internet_connection, request
 from refy.settings import fields_of_study, base_dir
 from refy.input import load_user_input
 from refy._query import SimpleQuery
-from refy.authors import Authors
 
 from refy.doc2vec import D2V
 
@@ -186,10 +185,9 @@ class Daily(SimpleQuery):
         distances = {ID: d / len(self.papers) for ID, d in distances.items()}
 
         # sort and truncate
-        self.fill(self.papers, len(distances), None, None)
+        self.fill(self.papers, len(distances), None, None, ignore_authors=True)
         self.suggestions.set_score(distances.values())
         self.suggestions.truncate(N)
-        self.authors = Authors(self.suggestions.get_authors())
 
 
 def setup(user, python_path, bibfile, N, outputpath):

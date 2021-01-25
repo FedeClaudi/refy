@@ -43,13 +43,12 @@ which should print something like:
 
 >**Note:** the first time you use `refy` it will have to download several files (which you can see [here](https://gin.g-node.org/FedeClaudi/refy/src/master/)) with data it needs to work. This should only take a few minuts and it will take up about 3GB of your hard disk space.
 
-You can use `refy` in four modes:
+You can use `refy` in three modes:
 1. In `query` mode you can find papers relevant for a given input string (e.g. `locomotion mouse brainstem`)
 2. In `suggest` mode you give `refy` a `.bib` [bibtext file](https://en.wikipedia.org/wiki/BibTeX) with metadata about as many publications as you want. `refy` will use this information to find papers relevant across all of your input papers.
-3. In`author` mode you can look for papers from an author
-4. `daily` suggests relevant papers from those released on biorxiv.org in the last 24 hours (see below)
+3. `daily` suggests relevant papers from those released on biorxiv.org in the last 24 hours (see below)
 
-For **query mode** you will use the command `refy query STRING`, for `suggest` you'd use `refy suggest PATH` and for `author` you'd use `refy author SURNAME`.
+For **query mode** you will use the command `refy query STRING`, for `suggest` you'd use `refy suggest PATH`.
 
  In all cases you can use optional arguments:
 ```shell
@@ -65,10 +64,9 @@ For example:
 refy query "locomotion control brainstem" --N 100 --since 2015 --to 2018 --s refs.csv
 ```
 Will show 100 suggested papers published between 2015 and 2018 related to locomotrion control and will save the results to `refs.csv`.
-Similarly `refy author Carandini --N 20 --d` will show 20 papers from "Carandini" and print out debug information in the process.
 
->**Note:** `suggest` mode is much more powerful and hence it's the recommended way for finding new literature, however `query` allows you to quickly look up new papers without having to createa a `.bib` field. `author` mode can be useful to find other authors that have published with a given author of interest.
 
+>**Note:** `suggest` mode is much more powerful and hence it's the recommended way for finding new literature, however `query` allows you to quickly look up new papers without having to createa a `.bib` field. 
 >**Note:** in `suggest` mode, the content of your `.bib` file **must** include papers abstracts. **Only papers with abstracts** will be used for the analysis. Your `.bib` file entries should look like this:
 ```
 @ARTICLE{Claudi2020-tb,
