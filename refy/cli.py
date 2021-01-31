@@ -17,6 +17,9 @@ def daily(
     html_path: str = typer.Option(
         None, "-o", help="Path to .html file where to save suggestions"
     ),
+    show_html: bool = typer.Option(
+        True, "-show-html", "--s", help="Show HTML output in browser"
+    ),
     debug: bool = typer.Option(
         False, "-debug", "--d", help="set debug mode ON/OFF"
     ),
@@ -35,7 +38,7 @@ def daily(
 
     # run daily search
     try:
-        refy.Daily(filepath, html_path=html_path, N=N)
+        refy.Daily(filepath, html_path=html_path, N=N, show_html=show_html)
     except Exception as e:
         logger.warning(f"Failed to run daily search, error: {e}")
 

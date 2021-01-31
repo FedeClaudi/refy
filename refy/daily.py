@@ -30,7 +30,9 @@ def cosine(v1, v2):
 
 
 class Daily(SimpleQuery):
-    def __init__(self, user_data_filepath, html_path=None, N=10):
+    def __init__(
+        self, user_data_filepath, html_path=None, N=10, show_html=True
+    ):
         """
             Get biorxiv preprints released in the last 24 hours
             and select the top N matches based on user inputs
@@ -40,6 +42,8 @@ class Daily(SimpleQuery):
                 html_path: str, Path. Path to a .html file 
                     where to save the output
                 N: int. Number of papers to return
+                show_html: bool. If true and a html_path is passed, it opens
+                    the html in the default web browser
         """
         logger.debug("\n\nStarting biorxiv daily search")
         self.start(text="Getting daily suggestions")
@@ -89,7 +93,7 @@ class Daily(SimpleQuery):
         )
 
         # open html in browser
-        if self.html_path is not None:
+        if self.html_path is not None and show_html:
             open_in_browser(self.html_path)
 
     def clean(self, papers):
@@ -220,7 +224,7 @@ def setup(user, python_path, bibfile, N, outputpath):
         out_file.unlink()
 
     # create crontab command
-    command = f"{python_path} {refy_folder}/cli.py daily {bibfile} -N {N} -o {outputpath} --d"
+    command = f"{python_path} {refy_folder}/cli.py daily {bibfile} -N {N} -o {outputpath} -show-html false --d"
     command += f" >> {out_file}"  # output file for crontab
 
     # setup cronotab job
