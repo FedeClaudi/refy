@@ -20,6 +20,7 @@ requirements = [
     "cython",  # should make gensim faster?
     "typer",
     "scholarly",
+    "myterial",
 ]
 
 setup(
