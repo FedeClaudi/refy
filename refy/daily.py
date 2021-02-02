@@ -224,7 +224,7 @@ def setup(user, python_path, bibfile, N, outputpath):
         out_file.unlink()
 
     # create crontab command
-    command = f"{python_path} {refy_folder}/cli.py daily {bibfile} -N {N} -o {outputpath} -show-html false --d"
+    command = f"{python_path} {refy_folder}/cli.py daily {bibfile} -N {N} -o {outputpath} --d"
     command += f" >> {out_file}"  # output file for crontab
 
     # setup cronotab job

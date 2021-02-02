@@ -18,7 +18,7 @@ def daily(
         None, "-o", help="Path to .html file where to save suggestions"
     ),
     show_html: bool = typer.Option(
-        True, "-show-html", "--s", help="Show HTML output in browser"
+        False, "-show-html", "--s", help="Show HTML output in browser"
     ),
     debug: bool = typer.Option(
         False, "-debug", "--d", help="set debug mode ON/OFF"
