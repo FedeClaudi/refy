@@ -17,15 +17,16 @@ requirements = [
     "myterial",
     "rich",
     "bibtexparser",
-    "cython",  # should make gensim faster?
+    "cython",
     "typer",
     "scholarly",
     "myterial",
+    "python-crontab",
 ]
 
 setup(
     name="refy",
-    version="0.3.2",
+    version="0.3.3",
     description="A scientific papers recomendation tool.",
     long_description=long_description,
     long_description_content_type="text/markdown",
