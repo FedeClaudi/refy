@@ -105,14 +105,6 @@ Will show 100 suggested papers published between 2015 and 2018 related to locomo
 ### Daily
 Hard to keep up with all the preprints that come out all the time? Fear not, `refy`'s `daily` function is here to help. In your terminal, call `refy daily mybib.bib` and `refy` will recomend papers from those that came out of biorxiv in the last 24 hours. You can use the `-N` argument to specify how many suggestions you'd like to see. 
 
-If you are using Mac or Linux, `refy` has a (still experimental) feature which enables you to run `refy daily` everyday automatically. To do so, call `refy setup-daily` which will create a [crontab](https://en.wikipedia.org/wiki/Cron) job which runs `refy daily` everyday at 10. If you'd like to change the time at which it runs you can edit the crontab job with `crontab -e`.
-
-For `refy setup-daily` to work, you will need to provide your user name, a path to a python executable (which has access to a refy installation), a path to your `.bib` file and then with the `-o` option you can specify a path to a `.html` file. The output of running `refy daily` will be saved as a `.html` file which you can open in your browser. So for instance, this is how I called `refy setup-daily`:
-```
-sudo refy setup-daily "federico claudi" "/Users/federicoclaudi/miniconda3/envs/ref/bin/python" "/Users/federicoclaudi/Documents/Github/referee/test.bib" -N 20 -o /Users/federicoclaudi/Desktop/refy.html
-```
-
-Notice the `sudo` before the command as `crontab` needs to have admin privileges.
 
 ### Scripting
 You can of course access all functionality through normal python scripts. For instance:

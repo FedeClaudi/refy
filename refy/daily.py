@@ -5,15 +5,13 @@ import pandas as pd
 from numpy import dot
 from numpy.linalg import norm
 from myterial import orange, green
-from pathlib import Path
 import sys
-from crontab import CronTab
 
 
 sys.path.append("./")
 
 from refy.utils import check_internet_connection, request, open_in_browser
-from refy.settings import fields_of_study, base_dir
+from refy.settings import fields_of_study
 from refy.input import load_user_input
 from refy._query import SimpleQuery
 
@@ -198,81 +196,8 @@ class Daily(SimpleQuery):
         self.suggestions.truncate(N)
 
 
-def setup(user, python_path, bibfile, N, outputpath):
-    """
-        Sets up crontab schedule to run Daily every day
-
-        Arguments:
-            user: str. user name
-            python_path: str. path to python installation to use
-            N: int. Number of suggestions to return
-            outputpath: str. Path to .HTML to save the results to
-    """
-    if not Path(python_path).exists():
-        raise FileNotFoundError(
-            f"Could not find .bib file to use for daily searches: {python_path}"
-        )
-
-    # get refy installation path
-    refy_folder = Path(__file__).parent
-    assert (refy_folder / "cli.py").exists(), "could not find refy's cli file"
-    logger.debug(f"Refy package folder: {refy_folder}")
-
-    # get out file
-    out_file = base_dir / "daily.txt"
-    if out_file.exists():
-        out_file.unlink()
-
-    # create crontab command
-    command = f"{python_path} {refy_folder}/cli.py daily {bibfile} -N {N} -o {outputpath} --d"
-    command += f" >> {out_file}"  # output file for crontab
-
-    # setup cronotab job
-    logger.debug(f"Setting up crontab for user: {user}")
-    cron = CronTab(user=user)
-
-    logger.debug(f"setting up crontab jobs with command:\n     {command}")
-    job = cron.new(command=command, comment="refy_daily")
-    job.setall("* 7 * * *")  # run at 7 AM every day
-    cron.write()
-
-    jobs = "\n".join([str(c) for c in cron])
-    logger.debug(f"Crontab jobs:\n{jobs}")
-
-
-def stop(user):
-    """
-        Removes crontab job for refy
-    """
-    cron = CronTab(user=user)
-    cron.remove_all(comment="refy_daily")
-    cron.write()
-
-    # log jobs
-    jobs = "\n".join([str(c) for c in cron])
-    logger.debug(f"Crontab jobs:\n{jobs}")
-
-
 if __name__ == "__main__":
     import refy
 
     refy.set_logging("DEBUG")
     d = Daily(refy.settings.example_path, html_path="test.html")
-
-    # setup(
-    #     "federico claudi",
-    #     "/Users/federicoclaudi/miniconda3/envs/ref/bin/python",
-    #     "test.bib",
-    # )
-    # stop("federico claudi")
-
-    """
-        example:
-
-        sudo refy setup-daily "federico claudi" "/Users/federicoclaudi/miniconda3/envs/ref/bin/python" "/Users/federicoclaudi/Documents/Github/referee/test.bib" -N 20 -o /Users/federicoclaudi/Desktop/refy.html
-
-        to stop:
-
-        sudo refy stop-daily "federico claudi"
-
-    """

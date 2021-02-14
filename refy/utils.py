@@ -119,6 +119,8 @@ def request(url):
         it fetched (if it went through).
     """
     response = _request(url, stream=False)
+    if response.text == "Error : (2002) Connection refused":
+        raise ValueError(f"Bad response from url: {url}")
     return response.json()
 
 

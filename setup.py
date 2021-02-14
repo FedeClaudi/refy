@@ -21,7 +21,6 @@ requirements = [
     "typer",
     "scholarly",
     "myterial",
-    "python-crontab",
 ]
 
 setup(
