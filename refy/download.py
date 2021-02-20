@@ -92,6 +92,7 @@ def download_all():
 
     # download in parallel
     n_cpus = multiprocessing.cpu_count() - 2
+    http_retrieve_progress.transient = True
     with http_retrieve_progress as progress:
         with ThreadPoolExecutor(max_workers=n_cpus) as pool:
             for (url, output_file_path) in data:

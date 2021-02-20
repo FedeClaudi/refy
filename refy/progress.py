@@ -18,6 +18,7 @@ from myterial import (
 
 class CurrentTaskColumn(TextColumn):
     _renderable_cache = {}
+    _table_column = None
 
     def __init__(self, *args):
         pass
@@ -31,6 +32,7 @@ class CurrentTaskColumn(TextColumn):
 
 class FileNameColumn(TextColumn):
     _renderable_cache = {}
+    _table_column = None
 
     def __init__(self, *args):
         pass
@@ -44,6 +46,7 @@ class FileNameColumn(TextColumn):
 
 class LossColumn(TextColumn):
     _renderable_cache = {}
+    _table_column = None
 
     def __init__(self, *args):
         pass

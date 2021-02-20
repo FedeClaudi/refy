@@ -43,10 +43,12 @@ class Daily(SimpleQuery):
                 show_html: bool. If true and a html_path is passed, it opens
                     the html in the default web browser
         """
+        SimpleQuery.__init__(self, html_path=html_path)
+
         logger.debug("\n\nStarting biorxiv daily search")
         self.start(text="Getting daily suggestions")
 
-        SimpleQuery.__init__(self, html_path=html_path)
+        # get model
         self.model = D2V()
 
         # get data from biorxiv
