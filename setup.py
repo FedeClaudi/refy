@@ -25,7 +25,7 @@ requirements = [
 
 setup(
     name="refy",
-    version="0.3.3.1",
+    version="0.3.3.2",
     description="A scientific papers recomendation tool.",
     long_description=long_description,
     long_description_content_type="text/markdown",
