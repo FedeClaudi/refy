@@ -17,6 +17,7 @@ from refy.settings import (
     test_database_path,
     test_abstracts_path,
 )
+import refy
 
 from refy.utils import _request, check_internet_connection
 from refy.progress import http_retrieve_progress
@@ -37,7 +38,8 @@ example_library = remote_url_base + "example_library.bib"
 
 # organize urls and paths
 d2v_base = d2v_model_path.parent
-data = [
+
+_data = [
     (example_library, example_path),
     (database_url, database_path),
     (abstracts_url, abstracts_path),
@@ -45,10 +47,22 @@ data = [
     (test_abstracts_url, test_abstracts_path),
     (biorxiv_database_url, biorxiv_database_path),
     (biorxiv_abstracts_url, biorxiv_abstracts_path),
+]
+data = [
     (d2v_model, d2v_model_path),
     (d2v_vecs, d2v_base / "d2v_model.model.docvecs.vectors_docs.npy"),
     (d2v_wv, d2v_base / "d2v_model.model.wv.vectors.npy"),
     (d2v_sin, d2v_base / "d2v_model.model.trainables.syn1neg.npy"),
+]
+
+_possibly_skipped = [
+    example_path,
+    database_path,
+    abstracts_path,
+    test_database_path,
+    test_abstracts_path,
+    biorxiv_database_path,
+    biorxiv_abstracts_path,
 ]
 
 
@@ -92,6 +106,10 @@ def download_all():
 
     # download in parallel
     n_cpus = multiprocessing.cpu_count() - 2
+    if n_cpus <= 1:
+        n_cpus = 1
+    logger.debug(f"Downloading data with: {n_cpus} parallel processes")
+
     http_retrieve_progress.transient = True
     with http_retrieve_progress as progress:
         with ThreadPoolExecutor(max_workers=n_cpus) as pool:
@@ -129,6 +147,9 @@ def check_all():
         Checks that all necessary files are present
     """
     for url, filepath in data:
+        if refy.settings.DOWNLOAD_MODEL_ONLY and filepath in _possibly_skipped:
+            continue
+
         if not filepath.exists():
             return False, filepath
         else:

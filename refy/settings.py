@@ -3,6 +3,7 @@ from pathlib import Path
 
 DEBUG = False
 TEST_MODE = False  # gets set to True when running tests
+DOWNLOAD_MODEL_ONLY = False  # set to True to skip downloading datasets
 
 # ----------------------------------- paths ---------------------------------- #
 # create base path folder

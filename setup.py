@@ -7,7 +7,7 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 requirements = [
     "pyinspect",
-    "gensim",
+    "gensim==3.8.3",
     "nltk",
     "langdetect",
     "pandas",
@@ -25,7 +25,7 @@ requirements = [
 
 setup(
     name="refy",
-    version="0.3.3.2",
+    version="0.3.5.6",
     description="A scientific papers recomendation tool.",
     long_description=long_description,
     long_description_content_type="text/markdown",
