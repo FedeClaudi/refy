@@ -216,5 +216,8 @@ class Suggestions:
                 url,
             )
 
-        # fit in a panel
+            # add empty row for spacing
+            table.add_row(
+                "", "", "", "", "", "",
+            )
         return table

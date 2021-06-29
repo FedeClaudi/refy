@@ -29,7 +29,12 @@ def cosine(v1, v2):
 
 class Daily(SimpleQuery):
     def __init__(
-        self, user_data_filepath, html_path=None, N=10, show_html=True
+        self,
+        user_data_filepath,
+        html_path=None,
+        N=10,
+        show_html=True,
+        n_days=1,
     ):
         """
             Get biorxiv preprints released in the last 24 hours
@@ -42,8 +47,10 @@ class Daily(SimpleQuery):
                 N: int. Number of papers to return
                 show_html: bool. If true and a html_path is passed, it opens
                     the html in the default web browser
+                n_days: int. Default = 1. Number of days from preprints are to be taken (e.g. 7 means from the last week)
         """
         SimpleQuery.__init__(self, html_path=html_path)
+        self.n_days = n_days
 
         logger.debug("\n\nStarting biorxiv daily search")
         self.start(text="Getting daily suggestions")
@@ -148,7 +155,9 @@ class Daily(SimpleQuery):
             )
 
         today = datetime.today().strftime("%Y-%m-%d")
-        yesterday = (datetime.now() - timedelta(1)).strftime("%Y-%m-%d")
+        yesterday = (datetime.now() - timedelta(self.n_days)).strftime(
+            "%Y-%m-%d"
+        )
 
         req = request(base_url + f"{yesterday}/{today}")
         tot = req["messages"][0]["total"]

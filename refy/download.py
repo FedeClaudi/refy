@@ -76,7 +76,7 @@ def retrieve_over_http(url, response, output_file_path, task_id):
             output_file_path: Path. Path to where the downloaded data will be stored
             task_id: task id to update multi-line progress bar
     """
-
+    logger.debug(f"Downloading {output_file_path.name}")
     CHUNK_SIZE = 4096
 
     try:

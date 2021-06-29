@@ -63,6 +63,9 @@ keywords = (
     "agent",
     "computational",
     "dynamics",
+    "RNN",
+    "CNN",
+    "spiking",
 )  # only keep papers that have these keywords in the abstract
 
 
@@ -71,4 +74,4 @@ low_year = 1990  # only papers more recent than this are kept
 
 # start and end date for queries from biorxiv's server
 biorxiv_start_date = "2015-01-01"
-biorxiv_end_date = "2021-01-15"
+biorxiv_end_date = "2021-06-28"
