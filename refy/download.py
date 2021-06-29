@@ -18,6 +18,7 @@ from refy.settings import (
     test_abstracts_path,
 )
 import refy
+from refy import settings
 
 from refy.utils import _request, check_internet_connection
 from refy.progress import http_retrieve_progress
@@ -142,6 +143,37 @@ def download_all():
                 )
 
 
+def download_all_slow():
+    """
+        Used to download necessary files one at the time instead of 
+        with parallel processing
+    """
+    http_retrieve_progress.transient = True
+    with http_retrieve_progress as progress:
+        for (url, output_file_path) in data:
+            # check if file was downloaded already
+            if output_file_path.exists():
+                logger.debug(
+                    f"Not downloading {output_file_path.name} because it exists already"
+                )
+                continue
+
+            # send a request and start a progress bar
+            response = _request(url, stream=True,)
+
+            task_id = progress.add_task(
+                "download",
+                start=True,
+                total=int(response.headers.get("content-length", 0)),
+                filename=output_file_path.name,
+            )
+
+            # stream data to file
+            retrieve_over_http(
+                url, response, output_file_path, task_id,
+            )
+
+
 def check_all():
     """
         Checks that all necessary files are present
@@ -162,7 +194,10 @@ def check_files():
         """
     # download all missing if connection
     if check_internet_connection():
-        download_all()
+        if settings.DOWNLOAD_FAST:
+            download_all()
+        else:
+            download_all_slow()
 
     # check all files are there
     passed, missing = check_all()

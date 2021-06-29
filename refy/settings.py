@@ -4,7 +4,7 @@ from pathlib import Path
 DEBUG = False
 TEST_MODE = False  # gets set to True when running tests
 DOWNLOAD_MODEL_ONLY = False  # set to True to skip downloading datasets
-
+DOWNLOAD_FAST = True  # enable parallel download of multiple files
 # ----------------------------------- paths ---------------------------------- #
 # create base path folder
 base_dir = Path(os.path.join(os.path.expanduser("~"), ".refy"))
