@@ -75,3 +75,24 @@ low_year = 1990  # only papers more recent than this are kept
 # start and end date for queries from biorxiv's server
 biorxiv_start_date = "2015-01-01"
 biorxiv_end_date = "2021-06-28"
+
+# from https://arxiv.org/category_taxonomy
+arxiv_categories = [
+    # computer science
+    "cs.AI",  # artificial inteligence
+    "cs.GL",  # general literature
+    "cs.LG",  # machine learning
+    "cs.NE",  # neural computing
+    "cs.MA",  # multi-agent systems
+    "cs.RO",  # robotics
+    "cs.SY",  # systems and controls
+    # math
+    "math.AT",  # algebraic topology
+    "math.DG",  # differential geometry
+    "math.DS",  # dynamical systems
+    "math.GN",  # general topology
+    "math.OC",  # control
+    # biology
+    "q-bio.NC",  # neurons & cognition
+    "q-bio.QM",  # quantitaative methods
+]

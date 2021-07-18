@@ -33,6 +33,11 @@ def get_authors(paper):
     """
     if paper.source == "biorxiv":
         splitter = "; "
+    elif paper.source == "arxiv":
+        if isinstance(paper.authors, list):
+            return paper.authors
+        else:
+            return [paper.authors["name"]]
     else:
         splitter = ", "
 

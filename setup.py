@@ -21,11 +21,12 @@ requirements = [
     "typer",
     "scholarly",
     "myterial",
+    "xmltodict",
 ]
 
 setup(
     name="refy",
-    version="0.3.6.6",
+    version="0.3.6.8rc",
     description="A scientific papers recomendation tool.",
     long_description=long_description,
     long_description_content_type="text/markdown",

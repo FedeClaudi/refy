@@ -86,10 +86,6 @@ class Suggestions:
             ~self.suggestions.title.isin(user_papers.title)
         ]
 
-        # self.suggestions = self.suggestions.loc[
-        #     ~self.suggestions.doi.isin(user_papers.doi)
-        # ]
-
         self._reset_idx()
 
     def filter(self, since=None, to=None):
@@ -164,7 +160,6 @@ class Suggestions:
             padding=(0, 1),
         )
         table.add_column("#", style=pink)
-        table.add_column("score", style="dim", justify="left")
         table.add_column("year", style="dim", justify="center")
         table.add_column(
             "author",
@@ -181,20 +176,17 @@ class Suggestions:
             overflow="fold",
         )
         table.add_column("DOI", style="dim")
+        table.add_column("source", style="dim")
 
         # add papers to table
         for i, paper in self.suggestions.iterrows():
-            if paper.score:
-                score = f"[{blue_grey_lighter} dim]" + str(
-                    round(paper["score"], 3)
-                )
-            else:
-                score = ""
-
-            if paper.doi:
+            if isinstance(paper.doi, str):
                 url = f"[{blue_grey_lighter}][link=https://doi.org/{paper.doi}]{paper.doi}[/]"
             else:
-                url = f"[{blue_grey_lighter}][link={paper.url}]link[/]"
+                url_txt = paper.url
+                if len(url_txt) > 20:
+                    url_txt = url_txt[:17] + "..."
+                url = f"[{blue_grey_lighter}][link={paper.url}]{url_txt}[/]"
 
             authors = get_authors(paper)
             if len(authors) > 1:
@@ -209,11 +201,11 @@ class Suggestions:
 
             table.add_row(
                 str(i + 1),
-                score,
                 f"[dim {amber}]" + str(paper.year),
                 author,
                 title,
                 url,
+                "[white]" + paper.source,
             )
 
             # add empty row for spacing
