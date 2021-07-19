@@ -124,6 +124,7 @@ class Daily(SimpleQuery):
 
         papers = papers[
             [
+                "id",
                 "doi",
                 "title",
                 "authors",
@@ -134,10 +135,6 @@ class Daily(SimpleQuery):
                 "url",
             ]
         ]
-
-        # fix ID
-        papers["id"] = papers["doi"]
-        papers = papers.drop_duplicates(subset="id")
 
         # fix year of publication
         papers["year"] = [
@@ -183,6 +180,7 @@ class Daily(SimpleQuery):
         papers = pd.concat([pd.DataFrame(ppr) for ppr in papers])
         papers = papers.loc[papers.category.isin(fields_of_study)]
         papers["source"] = "biorxiv"
+        papers["id"] = papers["doi"]
         return papers
 
     def _download_arxiv(self, today, start_date):
@@ -235,10 +233,10 @@ class Daily(SimpleQuery):
 
         # organize in a dataframe and return
         _papers = dict(
-            doi=[], title=[], published=[], authors=[], abstract=[], url=[]
+            id=[], title=[], published=[], authors=[], abstract=[], url=[]
         )
         for paper in papers:
-            _papers["doi"].append(paper["id"])
+            _papers["id"].append(paper["id"])
             _papers["title"].append(paper["title"])
             _papers["published"].append(paper["published"].split("T")[0])
             if isinstance(paper["author"], list):
