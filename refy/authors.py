@@ -7,6 +7,29 @@ from loguru import logger
 from myterial import pink, light_green
 
 
+def get_authors(paper):
+    """
+        Gets the authors of a paper and returns them as a list
+
+        Arguments:
+            paper: pd.Series with paper metadata
+
+        Returns:
+            authors: list of str of authors
+    """
+    if paper.source == "biorxiv":
+        splitter = "; "
+    elif paper.source == "arxiv":
+        if isinstance(paper.authors, list):
+            return paper.authors
+        else:
+            return [paper.authors["name"]]
+    else:
+        splitter = ", "
+
+    return paper.authors.split(splitter)
+
+
 class Authors:
     def __init__(self, authors):
         """
