@@ -2,6 +2,7 @@ from loguru import logger
 import xmltodict
 import pandas as pd
 import math
+from time import sleep
 
 from refy.web_utils import request, raise_on_no_connection
 from refy.utils import string_to_date
@@ -32,6 +33,7 @@ def download_biorxiv(today, start_date):
             )["collection"]
         )
         cursor += 100
+        logger.debug(f"     downloaded {cursor/tot * 100:.0f}%")
 
     # clean up
     papers = pd.concat([pd.DataFrame(ppr) for ppr in papers])
@@ -51,41 +53,53 @@ def download_arxiv(today, start_date):
     logger.debug(f"downloading papers from arxiv. || {start_date} -> {today}")
     today, start_date = string_to_date(today), string_to_date(start_date)
 
-    N_results = 50
+    N_results = 1000  # per request
     url_end = (
         f"&max_results={N_results}&sortBy=submittedDate&sortOrder=descending"
     )
+    query = "".join([f"cat:{cat}+OR+" for cat in arxiv_categories])[:-4]
 
-    # iterate over categories
-    papers = []
-    for ncat, cat in enumerate(arxiv_categories):
-        count = 0  # for pagination
-        logger.debug(f"     category {cat} ({ncat+1}/{len(arxiv_categories)})")
+    count = 0
+    papers, dates = [], []
+    while True:
+        logger.debug(
+            f"     sending biorxiv request with start index: {count} (requesting {N_results} papers)"
+            + f' | collected {len(papers)} papers so far | min date: {min(dates) if dates else "nan"}'
+        )
+        # download arxiv papers
+        url = arxiv_base_url + query + f"&start={count}" + url_end
+        logger.debug(f"         request url:\n{url}")
+        data_str = request(url)
 
-        # download as many papers as needed to get papers in the right range
-        while True:
-            url = arxiv_base_url + f"cat:{cat}" + url_end + f"&start={count}"
-            # data = urllib.request.urlopen(url)
-            # data_str = data.read().decode("utf-8")
-            data_str = request(url)
-
-            # parse
-            dict_data = xmltodict.parse(data_str)
+        # parse
+        dict_data = xmltodict.parse(data_str)
+        try:
             downloaded = dict_data["feed"]["entry"]
-            for paper in downloaded:
-                paper["category"] = cat
-            papers.extend(downloaded)
+        except KeyError:
+            # raise ValueError('Failed to retrieve data from arxiv, likely an API limitation issue, wait a bit.')\
+            break
 
-            # check if we are out of the date range or get more papers
-            last = string_to_date(downloaded[0]["published"].split("T")[0])
-            if last < start_date:
-                break
-            count += N_results
+        for paper in downloaded:
+            if isinstance(paper["category"], list):
+                paper["category"] = paper["category"][0]["@term"]
+            else:
+                paper["category"] = paper["category"]["@term"]
+
+        # store results
+        _dates = [
+            string_to_date(paper["published"].split("T")[0])
+            for paper in downloaded
+        ]
+        papers.extend(downloaded)
+        dates.extend(_dates)
+
+        if min(dates) < start_date:
+            break
+        else:
+            sleep(20)  # to avoid exceeding API restrictions
+            count += len(papers)
 
     # keep only papers in the right date range
-    dates = [
-        string_to_date(paper["published"].split("T")[0]) for paper in papers
-    ]
     papers = [
         paper for date, paper in zip(dates, papers) if date >= start_date
     ]

@@ -149,7 +149,10 @@ class Recomender(Results):
         for uID in self.user_abstracts.keys():
             for ID in self.abstracts.keys():
                 distances[ID].append(
-                    cosine_similarity(embeddings[uID], embeddings[ID])
+                    cosine_similarity(
+                        embeddings[uID].reshape(1, -1),
+                        embeddings[ID].reshape(1, -1),
+                    )
                 )
         # distances = {ID: d / len(self.papers) for ID, d in distances.items()}
         distances = {ID: np.median(d) for ID, d in distances.items()}
