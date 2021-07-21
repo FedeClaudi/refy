@@ -7,26 +7,20 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 requirements = [
     "pyinspect",
-    "gensim==3.8.3",
     "nltk",
     "langdetect",
     "pandas",
-    "pyarrow",
     "loguru",
     "requests",
     "myterial",
     "rich",
     "bibtexparser",
-    "cython",
-    "typer",
-    "scholarly",
-    "myterial",
     "xmltodict",
 ]
 
 setup(
     name="refy",
-    version="0.3.7.2rc",
+    version="1.0.0.1rc",
     description="A scientific papers recomendation tool.",
     long_description=long_description,
     long_description_content_type="text/markdown",

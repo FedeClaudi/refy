@@ -31,6 +31,6 @@ d = refy.Recomender(
  'library.bib',            # path to your .bib file
   n_days=30,               # fetch preprints from the last N days
   html_path="test.html",   # save results to a .html (Optional)
-  N=10.                    # number of recomended papers 
+  N=10                     # number of recomended papers 
 )
 ```
