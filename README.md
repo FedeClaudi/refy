@@ -23,7 +23,7 @@ If you have an environment with `python >= 3.6`, you can install `refy` with:
 ```
 pip install refy
 ```
-### getting requests
+### getting suggested papers
 ```python
 import refy
 
