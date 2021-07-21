@@ -3,12 +3,11 @@ from rich.console import Console
 from io import StringIO
 from rich import print
 import pandas as pd
-
 from loguru import logger
 
 from myterial import orange, amber, pink, light_green, blue_grey_lighter
 
-from refy.utils import get_authors
+from refy.authors import get_authors
 
 
 class Suggestions:
@@ -74,6 +73,7 @@ class Suggestions:
             "score", ascending=False
         )
         self._reset_idx()
+        return self.suggestions["score"]
 
     def remove_overlap(self, user_papers):
         """

@@ -1,211 +1,129 @@
-import multiprocessing
 from loguru import logger
-import requests
-import sys
-from concurrent.futures import ThreadPoolExecutor
+import xmltodict
+import pandas as pd
+import math
+from time import sleep
 
-sys.path.append("./")
+from refy.web_utils import request, raise_on_no_connection
+from refy.utils import string_to_date
+from refy.settings import biorxiv_categories, arxiv_categories
 
-from refy.settings import (
-    database_path,
-    abstracts_path,
-    remote_url_base,
-    example_path,
-    d2v_model_path,
-    biorxiv_abstracts_path,
-    biorxiv_database_path,
-    test_database_path,
-    test_abstracts_path,
-)
-import refy
-from refy import settings
-
-from refy.utils import _request, check_internet_connection
-from refy.progress import http_retrieve_progress
+biorxiv_base_url = "https://api.biorxiv.org/details/biorxiv/"
+arxiv_base_url = "http://export.arxiv.org/api/query?search_query="
 
 
-# get urls
-database_url = remote_url_base + "database.ftr"
-abstracts_url = remote_url_base + "abstracts.json"
-test_database_url = remote_url_base + "test_database.ftr"
-test_abstracts_url = remote_url_base + "test_abstracts.json"
-biorxiv_database_url = remote_url_base + "biorxiv_database.ftr"
-biorxiv_abstracts_url = remote_url_base + "biorxiv_abstracts.json"
-d2v_model = remote_url_base + "d2v_model.model"
-d2v_vecs = remote_url_base + "d2v_model.model.docvecs.vectors_docs.npy"
-d2v_wv = remote_url_base + "d2v_model.model.wv.vectors.npy"
-d2v_sin = remote_url_base + "d2v_model.model.trainables.syn1neg.npy"
-example_library = remote_url_base + "example_library.bib"
-
-# organize urls and paths
-d2v_base = d2v_model_path.parent
-
-_data = [
-    (example_library, example_path),
-    (database_url, database_path),
-    (abstracts_url, abstracts_path),
-    (test_database_url, test_database_path),
-    (test_abstracts_url, test_abstracts_path),
-    (biorxiv_database_url, biorxiv_database_path),
-    (biorxiv_abstracts_url, biorxiv_abstracts_path),
-]
-data = [
-    (d2v_model, d2v_model_path),
-    (d2v_vecs, d2v_base / "d2v_model.model.docvecs.vectors_docs.npy"),
-    (d2v_wv, d2v_base / "d2v_model.model.wv.vectors.npy"),
-    (d2v_sin, d2v_base / "d2v_model.model.trainables.syn1neg.npy"),
-]
-
-_possibly_skipped = [
-    example_path,
-    database_path,
-    abstracts_path,
-    test_database_path,
-    test_abstracts_path,
-    biorxiv_database_path,
-    biorxiv_abstracts_path,
-]
-
-
-def retrieve_over_http(url, response, output_file_path, task_id):
+def download_biorxiv(today, start_date):
     """
-        Download file from remote location, with progress bar.
-
-        Arguments: 
-            url: srt. Remote url to download the data from
-            response: response object from sending a request to a target url
-            output_file_path: Path. Path to where the downloaded data will be stored
-            task_id: task id to update multi-line progress bar
+        Downloads latest biorxiv's preprints, hot off the press
     """
-    logger.debug(f"Downloading {output_file_path.name}")
-    CHUNK_SIZE = 4096
+    req = request(biorxiv_base_url + f"{start_date}/{today}", to_json=True)
+    tot = req["messages"][0]["total"]
+    logger.debug(
+        f"Downloading metadata for {tot} papers from bioarxiv || {start_date} -> {today}"
+    )
 
-    try:
-        with open(output_file_path, "wb") as fout:
-            for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
-                fout.write(chunk)
-                http_retrieve_progress.update(task_id, advance=len(chunk))
-
-    except requests.exceptions.ConnectionError:
-        output_file_path.unlink()
-        raise requests.exceptions.ConnectionError(
-            f"Could not download file from {url}"
+    # loop over all papers
+    papers, cursor = [], 0
+    while cursor < int(math.ceil(tot / 100.0)) * 100:
+        # download
+        papers.append(
+            request(
+                biorxiv_base_url + f"{start_date}/{today}/{cursor}",
+                to_json=True,
+            )["collection"]
         )
+        cursor += 100
+        logger.debug(f"     downloaded {cursor/tot * 100:.0f}%")
 
-    http_retrieve_progress.remove_task(task_id)
-    logger.debug(f"Done downloading {output_file_path.name}")
+    # clean up
+    papers = pd.concat([pd.DataFrame(ppr) for ppr in papers])
+    papers["source"] = "biorxiv"
+    papers = papers.loc[papers.category.isin(biorxiv_categories)]
+    papers["id"] = papers["doi"]
+
+    logger.debug(f"kept {len(papers)} preprints from biorxiv")
+    return papers
 
 
-def download_all():
+@raise_on_no_connection
+def download_arxiv(today, start_date):
     """
-        Download all data used by refy, in parallel for speed.
-        It checks if all files used by refy are present and if not
-        it downloads them from GIN: 
-            https://gin.g-node.org/FedeClaudi/refy/src/master/
-    """
-    logger.debug("Checking that all files are present")
-
-    # download in parallel
-    n_cpus = multiprocessing.cpu_count() - 2
-    if n_cpus <= 1:
-        n_cpus = 1
-    logger.debug(f"Downloading data with: {n_cpus} parallel processes")
-
-    http_retrieve_progress.transient = True
-    with http_retrieve_progress as progress:
-        with ThreadPoolExecutor(max_workers=n_cpus) as pool:
-            for (url, output_file_path) in data:
-
-                # check if file was downloaded already
-                if output_file_path.exists():
-                    logger.debug(
-                        f"Not downloading {output_file_path.name} because it exists already"
-                    )
-                    continue
-
-                # send a request and start a progress bar
-                response = _request(url, stream=True,)
-
-                task_id = progress.add_task(
-                    "download",
-                    start=True,
-                    total=int(response.headers.get("content-length", 0)),
-                    filename=output_file_path.name,
-                )
-
-                # stream data to file
-                pool.submit(
-                    retrieve_over_http,
-                    url,
-                    response,
-                    output_file_path,
-                    task_id,
-                )
-
-
-def download_all_slow():
-    """
-        Used to download necessary files one at the time instead of 
-        with parallel processing
-    """
-    http_retrieve_progress.transient = True
-    with http_retrieve_progress as progress:
-        for (url, output_file_path) in data:
-            # check if file was downloaded already
-            if output_file_path.exists():
-                logger.debug(
-                    f"Not downloading {output_file_path.name} because it exists already"
-                )
-                continue
-
-            # send a request and start a progress bar
-            response = _request(url, stream=True,)
-
-            task_id = progress.add_task(
-                "download",
-                start=True,
-                total=int(response.headers.get("content-length", 0)),
-                filename=output_file_path.name,
-            )
-
-            # stream data to file
-            retrieve_over_http(
-                url, response, output_file_path, task_id,
-            )
-
-
-def check_all():
-    """
-        Checks that all necessary files are present
-    """
-    for url, filepath in data:
-        if refy.settings.DOWNLOAD_MODEL_ONLY and filepath in _possibly_skipped:
-            continue
-
-        if not filepath.exists():
-            return False, filepath
-        else:
-            return True, None
-
-
-def check_files():
-    """
-            Checks that all necessary files are present and tries to download them if not
+            get papers from arxiv
         """
-    # download all missing if connection
-    if check_internet_connection():
-        if settings.DOWNLOAD_FAST:
-            download_all()
-        else:
-            download_all_slow()
+    logger.debug(f"downloading papers from arxiv. || {start_date} -> {today}")
+    today, start_date = string_to_date(today), string_to_date(start_date)
 
-    # check all files are there
-    passed, missing = check_all()
-    if not passed:
-        raise ValueError(
-            f"At least one necessary file missing: {missing.name}. Connect to the internet to download"
+    N_results = 1000  # per request
+    url_end = (
+        f"&max_results={N_results}&sortBy=submittedDate&sortOrder=descending"
+    )
+    query = "".join([f"cat:{cat}+OR+" for cat in arxiv_categories])[:-4]
+
+    count = 0
+    papers, dates = [], []
+    while True:
+        logger.debug(
+            f"     sending biorxiv request with start index: {count} (requesting {N_results} papers)"
+            + f' | collected {len(papers)} papers so far | min date: {min(dates) if dates else "nan"}'
         )
+        # download arxiv papers
+        url = arxiv_base_url + query + f"&start={count}" + url_end
+        logger.debug(f"         request url:\n{url}")
+        data_str = request(url)
 
+        # parse
+        dict_data = xmltodict.parse(data_str)
+        try:
+            downloaded = dict_data["feed"]["entry"]
+        except KeyError:
+            # raise ValueError('Failed to retrieve data from arxiv, likely an API limitation issue, wait a bit.')\
+            break
 
-if __name__ == "__main__":
-    download_all()
+        for paper in downloaded:
+            if isinstance(paper["category"], list):
+                paper["category"] = paper["category"][0]["@term"]
+            else:
+                paper["category"] = paper["category"]["@term"]
+
+        # store results
+        _dates = [
+            string_to_date(paper["published"].split("T")[0])
+            for paper in downloaded
+        ]
+        papers.extend(downloaded)
+        dates.extend(_dates)
+
+        if min(dates) < start_date:
+            break
+        else:
+            sleep(20)  # to avoid exceeding API restrictions
+            count += len(papers)
+
+    # keep only papers in the right date range
+    papers = [
+        paper for date, paper in zip(dates, papers) if date >= start_date
+    ]
+
+    # organize in a dataframe and return
+    _papers = dict(
+        id=[], title=[], published=[], authors=[], abstract=[], url=[]
+    )
+    for paper in papers:
+        _papers["id"].append(paper["id"])
+        _papers["title"].append(paper["title"])
+        _papers["published"].append(paper["published"].split("T")[0])
+        _papers["abstract"].append(paper["summary"])
+        _papers["url"].append(paper["link"][0]["@href"])
+
+        if isinstance(paper["author"], list):
+            _papers["authors"].append(
+                [auth["name"] for auth in paper["author"]]
+            )
+        else:
+            _papers["authors"].append(paper["author"])  # single author
+
+    papers = pd.DataFrame(_papers)
+    papers["source"] = "arxiv"
+
+    logger.debug(f"Download {len(papers)} preprints from arxiv")
+    return papers
