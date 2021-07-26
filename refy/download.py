@@ -131,5 +131,5 @@ def download_arxiv(today, start_date):
     papers = pd.DataFrame(_papers)
     papers["source"] = "arxiv"
 
-    logger.debug(f"Download {len(papers)} preprints from arxiv")
+    logger.debug(f"Downloaded {len(papers)} preprints from arxiv")
     return papers

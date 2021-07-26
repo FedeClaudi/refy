@@ -7,8 +7,6 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 requirements = [
     "pyinspect",
-    "nltk",
-    "langdetect",
     "pandas",
     "loguru",
     "requests",
@@ -22,7 +20,7 @@ requirements = [
 
 setup(
     name="refy",
-    version="1.0.0.6rc",
+    version="1.0.0.6",
     description="A scientific papers recomendation tool.",
     long_description=long_description,
     long_description_content_type="text/markdown",

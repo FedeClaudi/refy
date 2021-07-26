@@ -1,31 +1,5 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from loguru import logger
-from nltk import word_tokenize
-from nltk.stem import WordNetLemmatizer
-import nltk
-from nltk.corpus import stopwords
-
-nltk.download("punkt")
-nltk.download("wordnet")
-
-
-# Interface lemma tokenizer from nltk with sklearn
-class LemmaTokenizer:
-    ignore_tokens = [",", ".", ";", ":", '"', "``", "''", "`"]
-
-    def __init__(self):
-        # Download stopwords list
-        nltk.download("punkt")
-        self.stop_words = set(stopwords.words("english"))
-
-        self.wnl = WordNetLemmatizer()
-
-    def __call__(self, doc):
-        return [
-            self.wnl.lemmatize(t)
-            for t in word_tokenize(doc)
-            if t not in self.ignore_tokens
-        ]
 
 
 def fit_tfidf(preprints_abstracts, user_abstracts):
@@ -40,14 +14,8 @@ def fit_tfidf(preprints_abstracts, user_abstracts):
         user_abstracts.values()
     )
 
-    # Lemmatize the stop words
-    tokenizer = LemmaTokenizer()
-    token_stop = tokenizer(" ".join(tokenizer.stop_words))
-
     # create TF-IDF model
-    model = TfidfVectorizer(
-        strip_accents="ascii", stop_words=token_stop, tokenizer=tokenizer
-    )
+    model = TfidfVectorizer(strip_accents="ascii", stop_words="english")
 
     # fit (includes pre processing)
     model.fit(abstracts)
