@@ -17,11 +17,12 @@ requirements = [
     "bibtexparser",
     "xmltodict",
     "sklearn",
+    "gensim==3.8.3",
 ]
 
 setup(
     name="refy",
-    version="1.0.0.5rc",
+    version="1.0.0.6rc",
     description="A scientific papers recomendation tool.",
     long_description=long_description,
     long_description_content_type="text/markdown",
