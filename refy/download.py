@@ -54,9 +54,7 @@ def download_arxiv(today, start_date):
     today, start_date = string_to_date(today), string_to_date(start_date)
 
     N_results = 500  # per request
-    url_end = (
-        f"&max_results={N_results}&start=START&sortBy=submittedDate&sortOrder=descending"
-    )
+    url_end = f"&max_results={N_results}&start=START&sortBy=submittedDate&sortOrder=descending"
     query = "".join([f"cat:{cat}+OR+" for cat in arxiv_categories])[:-4]
 
     count = 0
@@ -67,7 +65,7 @@ def download_arxiv(today, start_date):
             + f' | collected {len(papers)} papers so far | min date: {min(dates) if dates else "nan"}'
         )
         # download arxiv papers
-        url = arxiv_base_url + query + url_end.replace('START', str(count))
+        url = arxiv_base_url + query + url_end.replace("START", str(count))
         logger.debug(f"         request url:\n{url}")
         data_str = request(url)
 
@@ -77,11 +75,15 @@ def download_arxiv(today, start_date):
             downloaded = dict_data["feed"]["entry"]
         except KeyError:
             # raise ValueError('Failed to retrieve data from arxiv, likely an API limitation issue, wait a bit.')
-            logger.debug(' !!! Failed to retrieve data from arxiv, likely an API limitation issue, wait a bit. !!!')
-            logger.debug(dict_data['feed'])
+            logger.debug(
+                " !!! Failed to retrieve data from arxiv, likely an API limitation issue, wait a bit. !!!"
+            )
+            logger.debug(dict_data["feed"])
             break
         else:
-            logger.debug(f'     downloaded {len(downloaded)} papers - filtering')
+            logger.debug(
+                f"     downloaded {len(downloaded)} papers - filtering"
+            )
 
         for paper in downloaded:
             if isinstance(paper["category"], list):
