@@ -16,11 +16,12 @@ requirements = [
     "rich",
     "bibtexparser",
     "xmltodict",
+    "sklearn",
 ]
 
 setup(
     name="refy",
-    version="1.0.0.1rc",
+    version="1.0.0.4",
     description="A scientific papers recomendation tool.",
     long_description=long_description,
     long_description_content_type="text/markdown",
