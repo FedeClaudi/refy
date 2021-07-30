@@ -86,6 +86,10 @@ def download_arxiv(today, start_date):
             )
 
         for paper in downloaded:
+            if isinstance(paper, str):
+                raise ValueError(
+                    f"Querying Arxiv API returned a string: {paper}"
+                )
             if isinstance(paper["category"], list):
                 paper["category"] = paper["category"][0]["@term"]
             else:
