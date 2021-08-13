@@ -60,6 +60,10 @@ class Recomender(Results):
             p["id"]: p.abstract for i, p in self.user_papers.iterrows()
         }
 
+        logger.debug(
+            f"Final papers count: {len(self.papers)} preprints and {len(self.user_papers)} user papers"
+        )
+
         # -- ANALYSIS
         self.fit()
 

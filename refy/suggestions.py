@@ -19,7 +19,7 @@ class Suggestions:
             Arguments:
                 suggestions: pd.DataFrame with suggestions data
         """
-        self.suggestions = suggestions.drop_duplicates(subset="title").copy()
+        self.suggestions = suggestions.copy()
         self.suggestions["score"] = None  # set it as None to begin with
 
     def __len__(self):
@@ -34,6 +34,14 @@ class Suggestions:
         _console.print(self)
 
         return buf.getvalue()
+
+    def clean(self):
+        """
+            Removes duplicate entries
+        """
+        self.suggestions = self.suggestions.drop_duplicates(
+            subset="title"
+        ).copy()
 
     @property
     def titles(self):
@@ -143,6 +151,7 @@ class Suggestions:
                 highlighter: Highlighter for mark keywords
 
         """
+        self.clean()
         logger.debug("Suggestions -> table")
         if self.suggestions.empty:
             print(f"[{orange}]Found no papers matching your query, sorry")
