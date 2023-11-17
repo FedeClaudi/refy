@@ -14,7 +14,7 @@ requirements = [
     "rich",
     "bibtexparser",
     "xmltodict",
-    "sklearn",
+    "scikit-learn",
     "gensim==3.8.3",
 ]
 
